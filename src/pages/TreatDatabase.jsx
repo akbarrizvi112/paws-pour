@@ -11,7 +11,7 @@ export function TreatDatabase() {
             <PageHeader
                 title="Treat Database"
                 description="Manage and approve treats for the Paws & Pour system."
-                action={<Button className="bg-[#6b8c6a] hover:bg-[#5a7659] text-white">Add Treat</Button>}
+                action={<Button className="bg-[#5e6f5e] hover:bg-[#4D5B4D] text-white">Add Treat</Button>}
             />
             {loading ? (
                 <div className="h-96 rounded-2xl bg-surface border border-primary-100 animate-pulse"></div>

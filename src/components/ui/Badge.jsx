@@ -2,10 +2,11 @@ import { cn } from "../../utils/helpers";
 
 export function Badge({ className, variant = "default", children, ...props }) {
     const variants = {
-        default: "bg-primary-100 text-primary-900",
-        success: "bg-accent-soft text-accent",
-        warning: "bg-yellow-100 text-yellow-800",
-        danger: "bg-danger-soft text-danger",
+        default: "bg-section text-primary-900 border border-primary-100",
+        success: "bg-[#4caf50] text-white",
+        warning: "bg-[#f4a261] text-white",
+        danger: "bg-[#e63946] text-white",
+        info: "bg-[#4c8bf5] text-white",
     };
 
     return (

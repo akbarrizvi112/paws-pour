@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Set to Railway backend URL
-const baseURL = import.meta.env.VITE_API_URL || 'https://pawspour-production.up.railway.app';
+
+const baseURL = import.meta.env.VITE_API_URL;
 
 const axiosClient = axios.create({
     baseURL,
@@ -11,7 +11,7 @@ const axiosClient = axios.create({
     },
 });
 
-// Request interceptor to automatically add the access token to headers
+
 axiosClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('accessToken');
@@ -40,7 +40,7 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
-// Response interceptor to handle token refresh or 401s
+
 axiosClient.interceptors.response.use(
     (response) => {
         return response;
@@ -66,7 +66,7 @@ axiosClient.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                // Must not use axiosClient here to prevent infinite loop.
+
                 const response = await axios.post(`${baseURL}/auth/refresh`, {}, {
                     // WithCredentials might be needed if refresh token is in an httpOnly cookie.
                     // withCredentials: true

@@ -18,7 +18,7 @@ export function ActivityChart({ data }) {
                                 contentStyle={{ borderRadius: '12px', border: '1px solid #f4ede4', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                             />
                             <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                            <Line type="monotone" dataKey="allergyBlocks" name="Allergy Blocks" stroke="#6b8c6a" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                            <Line type="monotone" dataKey="allergyBlocks" name="Allergy Blocks" stroke="#5e6f5e" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                             <Line type="monotone" dataKey="toxicBlocks" name="Toxic Ingredient Blocks" stroke="#b58d62" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                             <Line type="monotone" dataKey="portionAdjustments" name="Portion Adjustments" stroke="#d97757" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                         </LineChart>

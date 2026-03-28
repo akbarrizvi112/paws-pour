@@ -12,7 +12,6 @@ export const userService = {
     },
 
     updateUserProfile: async (userId, data) => {
-        // data should be { name: "string", accountType: "string" }
         const response = await axiosClient.patch(`/users/${userId}`, data);
         return response.data;
     }

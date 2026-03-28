@@ -10,8 +10,8 @@ export function SafetyLogsTable({ logs, currentPage, totalPages, onPageChange })
                     <TableHeader>
                         <TableRow>
                             <TableHead>Pet</TableHead>
-                            <TableHead>Species</TableHead>
-                            <TableHead>Ingredient</TableHead>
+                            <TableHead className="hidden sm:table-cell">Species</TableHead>
+                            <TableHead className="hidden md:table-cell">Ingredient</TableHead>
                             <TableHead>Date</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -22,8 +22,8 @@ export function SafetyLogsTable({ logs, currentPage, totalPages, onPageChange })
                                     <PawPrint className="w-4 h-4 text-accent" />
                                     {log.pet}
                                 </TableCell>
-                                <TableCell className="text-primary-600">{log.species}</TableCell>
-                                <TableCell className="text-primary-900 font-medium">{log.ingredient}</TableCell>
+                                <TableCell className="hidden sm:table-cell text-primary-600">{log.species}</TableCell>
+                                <TableCell className="hidden md:table-cell text-primary-900 font-medium">{log.ingredient}</TableCell>
                                 <TableCell className="text-primary-600">{log.date}</TableCell>
                             </TableRow>
                         ))}

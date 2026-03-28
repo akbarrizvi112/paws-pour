@@ -1,22 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #fdfaf6;
-  --color-primary-100: #f4ede4;
-  --color-primary-500: #b58d62;
-  --color-primary-600: #9e734c;
-  --color-primary-800: #5c4128;
-  --color-primary-900: #4a3420;
-  
-  --color-accent-soft: #eaf1ea;
-  --color-accent: #6b8c6a;
-  
-  --color-danger-soft: #fdebdd;
-  --color-danger: #d97757;
-  
-  --color-background: #fcf9f5;
-  --color-surface: #ffffff;
-  
+  --color-primary: #5E6F5E;
+  --color-primary-50: #f8faf8;
+  --color-primary-100: #ECE8DC;
+  --color-primary-200: #A9B79A;
+  --color-primary-500: #5E6F5E;
+  --color-primary-600: #576757;
+  --color-primary-800: #424e42;
+  --color-primary-900: #2d352d;
+
+  --color-secondary: #A9B79A;
+  --color-background: #F5F3EA;
+  --color-surface: #FFFFFF;
+  --color-section: #ECE8DC;
+
+  --color-text-dark: #5E6F5E;
+  --color-text-light: #6D6D6D;
+
+  --color-success: #4CAF50;
+  --color-success-soft: #EDF7ED;
+  --color-warning: #F4A261;
+  --color-warning-soft: #FFF4EC;
+  --color-error: #E63946;
+  --color-error-soft: #FEEDEB;
+  --color-info: #4C8BF5;
+  --color-info-soft: #EBF2FE;
+
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 

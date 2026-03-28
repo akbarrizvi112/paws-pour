@@ -14,9 +14,9 @@ export function RuleEngine() {
             />
 
             <div className="flex gap-4">
-                <Button className="bg-[#eaf1ea] text-[#4a3420] hover:bg-[#5a7659] hover:text-white shadow-sm font-semibold">Species Compatibility</Button>
+                <Button className="bg-[#5e6f5e] text-white hover:bg-[#4D5B4D] shadow-sm font-semibold">Species Compatibility</Button>
                 <Button className="bg-[#f4ede4] text-[#4a3420] hover:bg-[#b05d41] hover:text-white shadow-sm font-semibold">Toxic Ingredients</Button>
-                <Button className="bg-[#fdebdd] text-[#4a3420] hover:bg-[#5a7659] hover:text-white shadow-sm font-semibold">Allergy Filters</Button>
+                <Button className="bg-[#fdebdd] text-[#4a3420] hover:bg-[#4D5B4D] hover:text-white shadow-sm font-semibold">Allergy Filters</Button>
             </div>
 
             <div className="mt-8">

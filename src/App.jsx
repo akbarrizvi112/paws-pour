@@ -8,10 +8,9 @@ import { Subscriptions } from './pages/Subscriptions';
 import { SafetyLogs } from './pages/SafetyLogs';
 import { Login } from './pages/Login';
 
-// A simple mock auth wrapper for dashboard routes
-// eslint-disable-next-line react/prop-types
+
 function ProtectedRoute({ children }) {
-  // Check token to enforce actual auth protection
+
   const isAuthenticated = !!localStorage.getItem('accessToken');
   return isAuthenticated ? children : <Navigate to="/login" />;
 }

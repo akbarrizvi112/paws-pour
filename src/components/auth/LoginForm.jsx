@@ -41,7 +41,6 @@ export function LoginForm() {
     return (
         <div className="w-full max-w-sm mx-auto">
             <form onSubmit={handleLogin} className="space-y-5">
-                {/* {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg font-medium animate-in fade-in slide-in-from-top-1">{error}</div>} */}
 
                 <InputField
                     icon={User}
@@ -67,14 +66,14 @@ export function LoginForm() {
                 />
 
                 <div className="flex justify-end pt-1 pb-4">
-                    <a href="#" className="text-sm font-bold text-[#6b8c6a] hover:text-[#4a3420] transition-colors">
+                    <a href="#" className="text-sm font-bold text-[#5e6f5e] hover:text-[#4a3420] transition-colors">
                         Forgot Password?
                     </a>
                 </div>
 
                 <Button
                     type="submit"
-                    className="w-full h-14 text-lg tracking-wide font-semibold bg-[#6b8c6a] hover:bg-[#5a7659] text-white rounded-2xl shadow-md transition-all active:scale-[0.98]"
+                    className="w-full h-14 text-lg tracking-wide font-semibold bg-[#5e6f5e] hover:bg-[#4D5B4D] text-white rounded-2xl shadow-md transition-all active:scale-[0.98]"
                     disabled={loading}
                 >
                     {loading ? 'Logging in...' : 'Login'}

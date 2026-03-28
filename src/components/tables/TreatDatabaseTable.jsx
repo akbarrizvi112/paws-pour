@@ -10,9 +10,9 @@ export function TreatDatabaseTable({ treats, currentPage, totalPages, onPageChan
                     <TableHeader>
                         <TableRow>
                             <TableHead>Treat Name</TableHead>
-                            <TableHead>Calories</TableHead>
-                            <TableHead>Meat Source</TableHead>
-                            <TableHead>Grain</TableHead>
+                            <TableHead className="hidden sm:table-cell">Calories</TableHead>
+                            <TableHead className="hidden md:table-cell">Meat Source</TableHead>
+                            <TableHead className="hidden lg:table-cell">Grain</TableHead>
                             <TableHead>Status</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -20,11 +20,11 @@ export function TreatDatabaseTable({ treats, currentPage, totalPages, onPageChan
                         {treats.map((treat) => (
                             <TableRow key={treat.id}>
                                 <TableCell className="font-medium">{treat.name}</TableCell>
-                                <TableCell>{treat.calories}</TableCell>
-                                <TableCell>{treat.meatSource}</TableCell>
-                                <TableCell>{treat.grain}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{treat.calories}</TableCell>
+                                <TableCell className="hidden md:table-cell">{treat.meatSource}</TableCell>
+                                <TableCell className="hidden lg:table-cell">{treat.grain}</TableCell>
                                 <TableCell>
-                                    <Badge variant={treat.status === 'Approved' ? 'success' : treat.status === 'Pending' ? 'warning' : 'danger'}>
+                                    <Badge variant={treat.status === 'Approved' ? 'success' : treat.status === 'Pending' ? 'warning' : (treat.status === 'Disabled' || treat.status === 'Rejected') ? 'danger' : 'default'}>
                                         {treat.status}
                                     </Badge>
                                 </TableCell>

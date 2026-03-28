@@ -20,7 +20,7 @@ export function RuleEngineTable({ rules }) {
                             <TableCell className="font-medium text-primary-900">{rule.name}</TableCell>
                             <TableCell className="text-primary-600">{rule.category}</TableCell>
                             <TableCell>
-                                <Badge variant={rule.status === 'Active' ? 'success' : 'default'}>
+                                <Badge variant={rule.status === 'Active' ? 'success' : rule.status === 'Inactive' ? 'danger' : 'default'}>
                                     {rule.status}
                                 </Badge>
                             </TableCell>

@@ -1,6 +1,6 @@
 import { PageHeader } from '../components/layout/PageHeader';
 import { SafetyLogsTable } from '../components/tables/SafetyLogsTable';
-import { safetyLogsMock } from '../data/rulesMock'; // using standard mocks
+import { safetyLogsMock } from '../data/rulesMock';
 import { Button } from '../components/ui/Button';
 
 export function SafetyLogs() {

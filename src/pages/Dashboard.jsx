@@ -7,6 +7,7 @@ import { PetProfilesTable } from '../components/tables/PetProfilesTable';
 import { TreatDatabaseTable } from '../components/tables/TreatDatabaseTable';
 import { RuleEngineTable } from '../components/tables/RuleEngineTable';
 import { SubscriptionChart } from '../components/dashboard/SubscriptionChart';
+import { CalorieOverview } from '../components/dashboard/CalorieOverview';
 import { SafetyLogsTable } from '../components/tables/SafetyLogsTable';
 import { Button } from '../components/ui/Button';
 import { PawPrint, Bone, ShieldAlert, CreditCard } from 'lucide-react';
@@ -38,7 +39,7 @@ export function Dashboard() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setActiveTab(tab)}
-                                className={activeTab === tab ? "bg-[#eaf1ea] text-primary-900 font-bold whitespace-nowrap" : "text-primary-600 whitespace-nowrap"}
+                                className={activeTab === tab ? "bg-primary text-white font-bold whitespace-nowrap" : "text-primary-600 whitespace-nowrap"}
                             >
                                 {tab}
                             </Button>
@@ -54,27 +55,27 @@ export function Dashboard() {
                     value="1,245"
                     subtitle="Pets"
                     icon={PawPrint}
-                    colorClass="bg-[#eaf1ea] text-[#6b8c6a]"
+                    colorClass="bg-success-soft text-primary"
                 />
                 <StatCard
                     title="Treats Approved"
                     value="320"
                     subtitle="Treat Items"
                     icon={Bone}
-                    colorClass="bg-[#f4ede4] text-[#b58d62]"
+                    colorClass="bg-primary-100 text-primary-600"
                 />
                 <StatCard
                     title="Allergy Blocks Triggered"
                     value="84"
                     subtitle="Safety Blocks"
                     icon={ShieldAlert}
-                    colorClass="bg-[#fdebdd] text-[#d97757]"
+                    colorClass="bg-warning-soft text-warning"
                 />
                 <StatCard
                     title="Active Subs"
                     value="240"
                     icon={CreditCard}
-                    colorClass="bg-[#eaf1ea] text-[#6b8c6a]"
+                    colorClass="bg-success-soft text-primary"
                 />
             </div>
 
@@ -118,7 +119,7 @@ export function Dashboard() {
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-primary-900">Treat Database Management</h2>
                                 <div className="flex gap-2">
-                                    <Button size="sm" className="bg-[#6b8c6a] hover:bg-[#5a7659] text-white">Add Treat</Button>
+                                    <Button size="sm" className="bg-primary hover:bg-primary-600 text-white">Add Treat</Button>
                                     <Button size="sm" variant="outline">Edit</Button>
                                     <Button size="sm" variant="outline">Disable</Button>
                                 </div>
@@ -129,8 +130,12 @@ export function Dashboard() {
                         </div>
 
                         <div className="space-y-8">
-                            <div className="h-[300px]">
-                                {subsLoading ? <div className="h-full bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                            <div className="h-auto">
+                                <CalorieOverview />
+                            </div>
+
+                            <div className="h-auto">
+                                {subsLoading ? <div className="h-[300px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
                                     <SubscriptionChart data={stats} />
                                 )}
                             </div>
@@ -151,7 +156,7 @@ export function Dashboard() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-primary-900">Pet Profiles</h2>
-                        <Button size="sm" className="bg-[#6b8c6a] hover:bg-[#5a7659] text-white">Add Pet Profile</Button>
+                        <Button size="sm" className="bg-primary hover:bg-primary-600 text-white">Add Pet Profile</Button>
                     </div>
                     {petsLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
                         <PetProfilesTable pets={pets} currentPage={1} totalPages={5} onPageChange={() => { }} />
@@ -164,7 +169,7 @@ export function Dashboard() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-primary-900">Treat Database</h2>
                         <div className="flex gap-2">
-                            <Button size="sm" className="bg-[#6b8c6a] hover:bg-[#5a7659] text-white">Add Treat</Button>
+                            <Button size="sm" className="bg-primary hover:bg-primary-600 text-white">Add Treat</Button>
                             <Button size="sm" variant="outline">Edit</Button>
                             <Button size="sm" variant="outline">Disable</Button>
                         </div>
@@ -180,9 +185,9 @@ export function Dashboard() {
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-xl font-bold text-primary-900">Rule Engine Configuration</h2>
                         <div className="flex flex-wrap gap-2">
-                            <Button className="bg-[#eaf1ea] text-[#4a3420] hover:bg-[#5a7659] hover:text-white shadow-sm font-semibold">Species Compatibility</Button>
-                            <Button className="bg-[#f4ede4] text-[#4a3420] hover:bg-[#b05d41] hover:text-white shadow-sm font-semibold">Toxic Ingredients</Button>
-                            <Button className="bg-[#fdebdd] text-[#4a3420] hover:bg-[#5a7659] hover:text-white shadow-sm font-semibold">Allergy Filters</Button>
+                            <Button className="bg-primary text-white hover:bg-primary-600 shadow-sm font-semibold">Species Compatibility</Button>
+                            <Button className="bg-primary-100 text-primary-900 hover:bg-primary-200 shadow-sm font-semibold">Toxic Ingredients</Button>
+                            <Button className="bg-warning-soft text-warning hover:bg-warning shadow-sm font-semibold">Allergy Filters</Button>
                         </div>
                     </div>
                     {rulesLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
@@ -197,12 +202,16 @@ export function Dashboard() {
                         <h2 className="text-xl font-bold text-primary-900">Rule Engine Activity</h2>
                         <ActivityChart data={activityChartData} />
                     </div>
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-bold text-primary-900">Subscription Monitoring</h2>
-                        <div className="h-[300px]">
-                            {subsLoading ? <div className="h-full bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                                <SubscriptionChart data={stats} />
-                            )}
+                    <div className="space-y-8">
+                        <div className="space-y-4">
+                            <CalorieOverview />
+                        </div>
+                        <div className="space-y-4">
+                            <div className="h-auto">
+                                {subsLoading ? <div className="h-[300px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                                    <SubscriptionChart data={stats} />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

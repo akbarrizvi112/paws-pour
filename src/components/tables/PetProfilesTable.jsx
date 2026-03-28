@@ -11,9 +11,9 @@ export function PetProfilesTable({ pets, currentPage, totalPages, onPageChange }
                     <TableHeader>
                         <TableRow>
                             <TableHead>Pet Name</TableHead>
-                            <TableHead>Species</TableHead>
-                            <TableHead>Weight</TableHead>
-                            <TableHead>Activity</TableHead>
+                            <TableHead className="hidden sm:table-cell">Species</TableHead>
+                            <TableHead className="hidden md:table-cell">Weight</TableHead>
+                            <TableHead className="hidden lg:table-cell">Activity</TableHead>
                             <TableHead>Status</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -24,11 +24,11 @@ export function PetProfilesTable({ pets, currentPage, totalPages, onPageChange }
                                     <PawPrint className="w-4 h-4 text-accent" />
                                     {pet.name}
                                 </TableCell>
-                                <TableCell>{pet.species}</TableCell>
-                                <TableCell>{pet.weight}</TableCell>
-                                <TableCell>{pet.activity}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{pet.species}</TableCell>
+                                <TableCell className="hidden md:table-cell">{pet.weight}</TableCell>
+                                <TableCell className="hidden lg:table-cell">{pet.activity}</TableCell>
                                 <TableCell>
-                                    <Badge variant={pet.status === 'Safe' ? 'success' : pet.status === 'Warning' ? 'warning' : 'danger'}>
+                                    <Badge variant={pet.status === 'Safe' ? 'success' : pet.status === 'Warning' ? 'warning' : (pet.status === 'Rejected' || pet.status === 'Alert') ? 'danger' : 'default'}>
                                         {pet.status}
                                     </Badge>
                                 </TableCell>
