@@ -16,13 +16,40 @@ import { usePets } from '../hooks/usePets';
 import { useTreats } from '../hooks/useTreats';
 import { useRules } from '../hooks/useRules';
 import { useSubscriptions } from '../hooks/useSubscriptions';
-import { activityChartData, safetyLogsMock } from '../data/rulesMock';
+import { useSafetyLogs } from '../hooks/useSafetyLogs';
+import { userService } from '../api/userService';
+import { useEffect } from 'react';
 
 export function Dashboard() {
     const { pets, loading: petsLoading } = usePets();
     const { treats, loading: treatsLoading } = useTreats();
-    const { rules, loading: rulesLoading } = useRules();
-    const { stats, loading: subsLoading } = useSubscriptions();
+    const {
+        rules: legacyRules,
+        unifiedRules,
+        loading: rulesLoading
+    } = useRules();
+
+    // Combine for dashboard preview
+    const allRules = [...(unifiedRules || []), ...(legacyRules || [])];
+    const { stats: subsStats, loading: subsLoading } = useSubscriptions();
+    const { logs: safetyLogs, loading: safetyLoading } = useSafetyLogs();
+
+    const [dashboardStats, setDashboardStats] = useState(null);
+    const [statsLoading, setStatsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardStats = async () => {
+            try {
+                const data = await userService.getDashboardStats();
+                setDashboardStats(data);
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats:", error);
+            } finally {
+                setStatsLoading(false);
+            }
+        };
+        fetchDashboardStats();
+    }, []);
 
     const [activeTab, setActiveTab] = useState('Dashboard');
     const tabs = ['Dashboard', 'Pet Profiles', 'Treat Database', 'Rule Engine', 'Analytics', 'Safety Logs', 'Settings'];
@@ -52,28 +79,28 @@ export function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Pets"
-                    value="1,245"
+                    value={statsLoading ? "..." : (dashboardStats?.totalPets?.toLocaleString() || "0")}
                     subtitle="Pets"
                     icon={PawPrint}
                     colorClass="bg-success-soft text-primary"
                 />
                 <StatCard
                     title="Treats Approved"
-                    value="320"
+                    value={statsLoading ? "..." : (dashboardStats?.totalTreatsApproved?.toLocaleString() || "0")}
                     subtitle="Treat Items"
                     icon={Bone}
                     colorClass="bg-primary-100 text-primary-600"
                 />
                 <StatCard
                     title="Allergy Blocks Triggered"
-                    value="84"
+                    value={statsLoading ? "..." : (dashboardStats?.allergyBlocks?.toLocaleString() || "0")}
                     subtitle="Safety Blocks"
                     icon={ShieldAlert}
                     colorClass="bg-warning-soft text-warning"
                 />
                 <StatCard
                     title="Active Subs"
-                    value="240"
+                    value={statsLoading ? "..." : (dashboardStats?.activeSubscriptions?.toLocaleString() || "0")}
                     icon={CreditCard}
                     colorClass="bg-success-soft text-primary"
                 />
@@ -84,7 +111,7 @@ export function Dashboard() {
                 <>
                     {/* Charts & Rules Row */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <ActivityChart data={activityChartData} />
+                        <ActivityChart />
                         <div className="lg:col-span-1">
                             <RuleTransparency />
                         </div>
@@ -98,7 +125,7 @@ export function Dashboard() {
                                 <Button variant="ghost" className="text-primary-600">View All &gt;</Button>
                             </div>
                             {petsLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                                <PetProfilesTable pets={pets.slice(0, 5)} currentPage={1} totalPages={5} onPageChange={() => { }} />
+                                <PetProfilesTable pets={Array.isArray(pets) ? pets.slice(0, 5) : []} onEdit={() => { }} onDelete={() => { }} onNutrition={() => { }} />
                             )}
                         </div>
 
@@ -108,7 +135,10 @@ export function Dashboard() {
                                 <Button variant="ghost" className="text-primary-600">View All &gt;</Button>
                             </div>
                             {rulesLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                                <RuleEngineTable rules={rules.slice(0, 4)} />
+                                <RuleEngineTable
+                                    rules={allRules.slice(0, 4)}
+                                    isUnified={allRules.some(r => !!r.source)}
+                                />
                             )}
                         </div>
                     </div>
@@ -135,9 +165,7 @@ export function Dashboard() {
                             </div>
 
                             <div className="h-auto">
-                                {subsLoading ? <div className="h-[300px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                                    <SubscriptionChart data={stats} />
-                                )}
+                                <SubscriptionChart />
                             </div>
 
                             <div className="space-y-4">
@@ -145,7 +173,9 @@ export function Dashboard() {
                                     <h2 className="text-xl font-bold text-primary-900">Safety Logs</h2>
                                     <Button variant="ghost" className="text-primary-600">View All &gt;</Button>
                                 </div>
-                                <SafetyLogsTable logs={safetyLogsMock} currentPage={1} totalPages={8} onPageChange={() => { }} />
+                                {safetyLoading ? <div className="h-48 bg-surface rounded-2xl border border-primary-100 animate-pulse" /> : (
+                                    <SafetyLogsTable logs={Array.isArray(safetyLogs) ? safetyLogs.slice(0, 5) : []} currentPage={1} totalPages={1} onPageChange={() => { }} />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -191,7 +221,10 @@ export function Dashboard() {
                         </div>
                     </div>
                     {rulesLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                        <RuleEngineTable rules={rules} />
+                        <RuleEngineTable
+                            rules={allRules}
+                            isUnified={allRules.some(r => !!r.source)}
+                        />
                     )}
                 </div>
             )}
@@ -200,7 +233,7 @@ export function Dashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <h2 className="text-xl font-bold text-primary-900">Rule Engine Activity</h2>
-                        <ActivityChart data={activityChartData} />
+                        <ActivityChart />
                     </div>
                     <div className="space-y-8">
                         <div className="space-y-4">
@@ -209,7 +242,7 @@ export function Dashboard() {
                         <div className="space-y-4">
                             <div className="h-auto">
                                 {subsLoading ? <div className="h-[300px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                                    <SubscriptionChart data={stats} />
+                                    <SubscriptionChart data={subsStats} />
                                 )}
                             </div>
                         </div>
@@ -223,7 +256,9 @@ export function Dashboard() {
                         <h2 className="text-xl font-bold text-primary-900">Safety Logs</h2>
                         <Button variant="outline" className="text-primary-900 border-primary-500">Export Logs</Button>
                     </div>
-                    <SafetyLogsTable logs={safetyLogsMock} currentPage={1} totalPages={8} onPageChange={() => { }} />
+                    {safetyLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse" /> : (
+                        <SafetyLogsTable logs={safetyLogs} currentPage={1} totalPages={1} onPageChange={() => { }} />
+                    )}
                 </div>
             )}
 

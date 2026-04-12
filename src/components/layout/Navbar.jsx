@@ -1,9 +1,26 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, UserCircle, LogOut, Menu } from 'lucide-react';
 import { authService } from '../../api/authService';
+import { userService } from '../../api/userService';
 
-export function Navbar({ userName = "User", onMenuClick }) {
+export function Navbar({ onMenuClick }) {
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const profile = await userService.getProfile();
+                setUser(profile);
+            } catch (error) {
+                console.error("Failed to fetch user profile:", error);
+            }
+        };
+        fetchProfile();
+    }, []);
+
+    const userName = user?.name || localStorage.getItem('userName') || "User";
 
     const handleLogout = () => {
         authService.logout();

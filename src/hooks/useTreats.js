@@ -10,7 +10,7 @@ export function useTreats() {
         try {
             setLoading(true);
             const data = await treatService.getTreats();
-            setTreats(data);
+            setTreats(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(err);
         } finally {
@@ -22,5 +22,13 @@ export function useTreats() {
         fetchTreats();
     }, []);
 
-    return { treats, loading, error, refetch: fetchTreats };
+    return {
+        treats,
+        loading,
+        error,
+        refetch: fetchTreats,
+        createTreat: treatService.createTreat,
+        updateTreat: treatService.updateTreat,
+        deleteTreat: treatService.deleteTreat
+    };
 }

@@ -1,26 +1,24 @@
-// eslint-disable-next-line no-unused-vars
 import axiosClient from '../api/axiosClient';
-import { treatsMock } from '../data/treatsMock';
 
 export const treatService = {
-    getTreats: async () => {
-        // return axiosClient.get('/treats');
-        return new Promise((resolve) => setTimeout(() => resolve(treatsMock), 400));
+    getTreats: async (params = {}) => {
+        const response = await axiosClient.get('/treats', { params });
+        return response.data;
     },
     getTreatById: async (id) => {
-        // return axiosClient.get(`/treats/${id}`);
-        return new Promise((resolve) => setTimeout(() => resolve(treatsMock.find(t => t.id === id)), 400));
+        const response = await axiosClient.get(`/treats/${id}`);
+        return response.data;
     },
     createTreat: async (data) => {
-        // return axiosClient.post('/treats', data);
-        return new Promise((resolve) => setTimeout(() => resolve({ id: Date.now(), ...data }), 400));
+        const response = await axiosClient.post('/treats', data);
+        return response.data;
     },
     updateTreat: async (id, data) => {
-        // return axiosClient.put(`/treats/${id}`, data);
-        return new Promise((resolve) => setTimeout(() => resolve({ id, ...data }), 400));
+        const response = await axiosClient.patch(`/treats/${id}`, data);
+        return response.data;
     },
     deleteTreat: async (id) => {
-        // return axiosClient.delete(`/treats/${id}`);
-        return new Promise((resolve) => setTimeout(() => resolve({ success: true }), 400));
+        const response = await axiosClient.delete(`/treats/${id}`);
+        return response.data;
     }
 };

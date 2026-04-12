@@ -1,14 +1,36 @@
-// eslint-disable-next-line no-unused-vars
 import axiosClient from '../api/axiosClient';
-import { subscriptionStatsMock, subscriptionRatesMock } from '../data/subscriptionMock';
 
 export const subscriptionService = {
     getStats: async () => {
-        // return axiosClient.get('/subscriptions/stats');
-        return new Promise((resolve) => setTimeout(() => resolve(subscriptionStatsMock), 400));
+        const response = await axiosClient.get('/subscriptions/stats');
+        return response.data;
     },
     getRates: async () => {
-        // return axiosClient.get('/subscriptions/rates');
-        return new Promise((resolve) => setTimeout(() => resolve(subscriptionRatesMock), 400));
+        const response = await axiosClient.get('/subscriptions/rates');
+        return response.data;
+    },
+    getSubscriptionByPetId: async (petId) => {
+        const response = await axiosClient.get(`/subscriptions/pet/${petId}`);
+        return response.data;
+    },
+    getSubscriptionById: async (id) => {
+        const response = await axiosClient.get(`/subscriptions/${id}`);
+        return response.data;
+    },
+    createSubscription: async (data) => {
+        const response = await axiosClient.post('/subscriptions', data);
+        return response.data;
+    },
+    updateSubscription: async (id, data) => {
+        const response = await axiosClient.patch(`/subscriptions/${id}`, data);
+        return response.data;
+    },
+    deleteSubscription: async (id) => {
+        const response = await axiosClient.delete(`/subscriptions/${id}`);
+        return response.data;
+    },
+    getAllSubscriptions: async () => {
+        const response = await axiosClient.get('/subscriptions');
+        return response.data;
     }
 };

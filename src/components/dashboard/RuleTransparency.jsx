@@ -1,8 +1,40 @@
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { userService } from '../../api/userService';
 
 export function RuleTransparency() {
+    const [decisions, setDecisions] = useState({ safeApprovals: 0, allergyBlocks: 0, toxicBlocks: 0 });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDecisions = async () => {
+            try {
+                const data = await userService.getDecisionsToday();
+                setDecisions(data);
+            } catch (error) {
+                console.error("Failed to fetch decisions today:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDecisions();
+    }, []);
+
+    if (loading) {
+        return (
+            <Card className="h-full flex flex-col items-center justify-center p-6">
+                <div className="animate-pulse space-y-4 w-full">
+                    <div className="h-4 w-1/3 bg-gray-200 rounded"></div>
+                    <div className="h-12 w-full bg-gray-100 rounded"></div>
+                    <div className="h-12 w-full bg-gray-100 rounded"></div>
+                    <div className="h-12 w-full bg-gray-100 rounded"></div>
+                </div>
+            </Card>
+        );
+    }
+
     return (
         <Card className="h-full flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -15,7 +47,7 @@ export function RuleTransparency() {
                     <div className="flex items-center gap-4">
                         <CheckCircle2 className="w-6 h-6 text-accent" />
                         <div>
-                            <span className="text-2xl font-bold text-primary-900 mr-2">210</span>
+                            <span className="text-2xl font-bold text-primary-900 mr-2">{decisions.safeApprovals}</span>
                             <span className="text-sm font-medium text-primary-600">Safe Approvals</span>
                         </div>
                     </div>
@@ -23,7 +55,7 @@ export function RuleTransparency() {
                     <div className="flex items-center gap-4">
                         <AlertTriangle className="w-6 h-6 text-[#d97757]" />
                         <div>
-                            <span className="text-2xl font-bold text-primary-900 mr-2">32</span>
+                            <span className="text-2xl font-bold text-primary-900 mr-2">{decisions.allergyBlocks}</span>
                             <span className="text-sm font-medium text-primary-600">Allergy Blocks</span>
                         </div>
                     </div>
@@ -31,7 +63,7 @@ export function RuleTransparency() {
                     <div className="flex items-center gap-4">
                         <XCircle className="w-6 h-6 text-red-600" />
                         <div>
-                            <span className="text-2xl font-bold text-primary-900 mr-2">6</span>
+                            <span className="text-2xl font-bold text-primary-900 mr-2">{decisions.toxicBlocks}</span>
                             <span className="text-sm font-medium text-primary-600">Toxic Blocks</span>
                         </div>
                     </div>

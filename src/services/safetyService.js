@@ -1,10 +1,21 @@
-// eslint-disable-next-line no-unused-vars
 import axiosClient from '../api/axiosClient';
-import { safetyLogsMock } from '../data/rulesMock'; // Stored together in rulesMock for simplicity
 
 export const safetyService = {
+    /** GET /audit — fetch all audit/safety logs */
     getLogs: async () => {
-        // return axiosClient.get('/safety/logs');
-        return new Promise((resolve) => setTimeout(() => resolve(safetyLogsMock), 400));
-    }
+        const response = await axiosClient.get('/audit');
+        return response.data;
+    },
+
+    /** GET /audit/pet/{petId} — fetch audit logs for a specific pet */
+    getLogsByPetId: async (petId) => {
+        const response = await axiosClient.get(`/audit/pet/${petId}`);
+        return response.data;
+    },
+
+    /** GET /audit/{logId} — fetch a specific audit log entry */
+    getLogById: async (logId) => {
+        const response = await axiosClient.get(`/audit/${logId}`);
+        return response.data;
+    },
 };

@@ -43,12 +43,21 @@ const processQueue = (error, token = null) => {
 
 axiosClient.interceptors.response.use(
     (response) => {
+        // Automatically unwrap the nested 'data' object if it exists
+        // This handles API responses structured as { data: { ... }, message: "..." }
+        if (response.data && Object.prototype.hasOwnProperty.call(response.data, 'data')) {
+            return {
+                ...response,
+                data: response.data.data
+            };
+        }
         return response;
     },
     async (error) => {
         const originalRequest = error.config;
+        const isAuthRequest = originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/auth/refresh');
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
             if (isRefreshing) {
                 return new Promise(function (resolve, reject) {
                     failedQueue.push({ resolve, reject });
@@ -83,8 +92,12 @@ axiosClient.interceptors.response.use(
                 return axiosClient(originalRequest);
             } catch (err) {
                 processQueue(err, null);
-                localStorage.removeItem('accessToken');
-                window.location.href = '/login';
+
+                if (err.response?.status === 401) {
+                    localStorage.removeItem('accessToken');
+                    window.location.href = '/login';
+                }
+
                 return Promise.reject(err);
             } finally {
                 isRefreshing = false;

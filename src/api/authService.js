@@ -4,8 +4,13 @@ export const authService = {
     login: async (email, password) => {
         try {
             const response = await axiosClient.post('/auth/login', { email, password });
-            if (response.data && response.data.accessToken) {
-                localStorage.setItem('accessToken', response.data.accessToken);
+
+            // Handle nested data property if it exists
+            const responseData = response.data.data || response.data;
+            const token = responseData.accessToken || responseData.token;
+
+            if (token) {
+                localStorage.setItem('accessToken', token);
             }
             return response.data;
         } catch (error) {

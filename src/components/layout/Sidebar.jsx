@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '../../utils/helpers';
-import { LayoutDashboard, PawPrint, Bone, ShieldCheck, CreditCard, Activity, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, PawPrint, Bone, ShieldCheck, CreditCard, Activity, Settings, LogOut, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { authService } from '../../api/authService';
 import logo from '../../assets/logo.png';
 
@@ -11,6 +11,7 @@ const navItems = [
     { name: 'Rule Engine', path: '/rules', icon: ShieldCheck },
     { name: 'Subscriptions', path: '/subscriptions', icon: CreditCard },
     { name: 'Safety Logs', path: '/safety', icon: Activity },
+    { name: 'Users', path: '/users', icon: User },
     { name: 'Settings', path: '/settings', icon: Settings },
 ];
 

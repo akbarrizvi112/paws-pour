@@ -4,6 +4,7 @@ import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import { InputField } from './InputField';
 import { Button } from '../ui/Button';
 import { authService } from '../../api/authService';
+import { useAuth } from '../../context/AuthContext';
 
 export function LoginForm() {
     const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export function LoginForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -25,10 +27,9 @@ export function LoginForm() {
         setLoading(true);
         try {
             const data = await authService.login(email, password);
-            if (data.accessToken) localStorage.setItem('accessToken', data.accessToken);
-            if (data.userId) localStorage.setItem('userId', data.userId);
-            if (data.name) localStorage.setItem('userName', data.name);
-            if (data.email) localStorage.setItem('userEmail', data.email);
+
+            // Use the login function from AuthContext to update state globally
+            login(data);
 
             navigate('/');
         } catch (err) {
@@ -41,6 +42,11 @@ export function LoginForm() {
     return (
         <div className="w-full max-w-sm mx-auto">
             <form onSubmit={handleLogin} className="space-y-5">
+                {/* {error && (
+                    <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl mb-4">
+                        {error}
+                    </div>
+                )} */}
 
                 <InputField
                     icon={User}
