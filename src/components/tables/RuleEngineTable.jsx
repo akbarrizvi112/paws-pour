@@ -3,77 +3,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 
-function VersionsDrawer({ ruleId, onClose, getRuleVersions }) {
-    const [versions, setVersions] = useState(null);
-    const [loading, setLoading] = useState(false);
 
-    const load = async () => {
-        setLoading(true);
-        try {
-            const data = await getRuleVersions(ruleId);
-            setVersions(Array.isArray(data) ? data : []);
-        } catch {
-            setVersions([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Load on first render
-    if (versions === null && !loading) {
-        load();
-    }
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-3xl w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-2xl">
-                <div className="p-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                    <h3 className="text-lg font-bold text-gray-800">Version History</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
-                </div>
-                <div className="p-4">
-                    {loading && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500 py-8 justify-center">
-                            <span className="animate-spin">⟳</span> Loading versions…
-                        </div>
-                    )}
-                    {!loading && versions !== null && versions.length === 0 && (
-                        <p className="text-center text-sm text-gray-400 py-8">No versions found for this rule.</p>
-                    )}
-                    {!loading && versions && versions.length > 0 && (
-                        <ul className="space-y-3">
-                            {versions.map((v, i) => (
-                                <li key={v.id ?? i} className="rounded-xl border border-gray-100 p-4 text-sm space-y-1 bg-gray-50">
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-semibold text-gray-700">Version {v.version ?? i + 1}</span>
-                                        <span className="text-xs text-gray-400">
-                                            {v.createdAt ? new Date(v.createdAt).toLocaleDateString() : '—'}
-                                        </span>
-                                    </div>
-                                    {v.notes && <p className="text-gray-600">{v.notes}</p>}
-                                    {v.changes && (
-                                        <pre className="text-xs bg-white rounded-lg p-2 border border-gray-100 overflow-auto">
-                                            {typeof v.changes === 'string' ? v.changes : JSON.stringify(v.changes, null, 2)}
-                                        </pre>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-export function RuleEngineTable({ rules, onEdit, onDelete, getRuleVersions, isUnified }) {
-    const [versionsRuleId, setVersionsRuleId] = useState(null);
+export function RuleEngineTable({ rules, onEdit, onDelete, isUnified }) {
     const [deletingId, setDeletingId] = useState(null);
 
     const resolveId = (rule) => rule.id ?? rule.ruleId ?? rule._id;
     const resolveStatus = (rule) => {
-        if (rule.status) return rule.status;
+        // FIX: Prioritize isActive boolean over the status string to ensure 
+        // the UI reflects recent updates immediately.
         if (rule.isActive !== undefined) return rule.isActive ? 'Active' : 'Inactive';
+        if (rule.status) return rule.status;
         return 'Unknown';
     };
     const resolveSource = (rule) => rule.source ?? rule.ruleSource ?? '—';
@@ -140,16 +79,6 @@ export function RuleEngineTable({ rules, onEdit, onDelete, getRuleVersions, isUn
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex items-center justify-end gap-1">
-                                            {/* Version History — only for legacy rules (they have UUIDs) */}
-                                            {!isUnified && getRuleVersions && id && (
-                                                <button
-                                                    onClick={() => setVersionsRuleId(id)}
-                                                    title="View version history"
-                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-[#5e6f5e] hover:bg-[#5e6f5e]/10 transition-colors text-sm"
-                                                >
-                                                    🕓
-                                                </button>
-                                            )}
                                             {onEdit && (
                                                 <Button
                                                     variant="ghost"
@@ -188,13 +117,6 @@ export function RuleEngineTable({ rules, onEdit, onDelete, getRuleVersions, isUn
                 </Table>
             </div>
 
-            {versionsRuleId && (
-                <VersionsDrawer
-                    ruleId={versionsRuleId}
-                    onClose={() => setVersionsRuleId(null)}
-                    getRuleVersions={getRuleVersions}
-                />
-            )}
         </>
     );
 }

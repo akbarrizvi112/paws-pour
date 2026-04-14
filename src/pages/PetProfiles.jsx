@@ -22,16 +22,31 @@ export function PetProfiles() {
     };
 
     const handleUpdatePet = async (data) => {
-        await petService.updatePet(editingPet.id || editingPet._id, data);
+        // FIX: Prioritize petId as specified by user
+        const petId = editingPet?.petId || editingPet?.petID || editingPet?.id || editingPet?._id;
+        if (!petId) {
+            alert("Operation failed: Pet ID is missing from local state");
+            return;
+        }
+        await petService.updatePet(petId, data);
         refetch();
     };
 
     const handleDeletePet = async (pet) => {
-        if (!window.confirm(`Are you sure you want to delete "${pet.name}"?`)) return;
+        if (!pet) return; // FIX: Guard against undefined pet
+        // FIX: Prioritize petId as specified by user. Extract from object if necessary.
+        const petId = typeof pet === 'object' ? (pet.petId || pet.petID || pet.id || pet._id) : pet;
+        if (!petId) return; // FIX: Do not proceed without ID
+
+        // FIX: Guard pet name for confirm dialog
+        const petName = typeof pet === 'object' ? pet.name : 'this pet profile';
+        if (!window.confirm(`Are you sure you want to delete "${petName}"?`)) return;
+
         try {
-            await petService.deletePet(pet.id || pet._id);
+            await petService.deletePet(petId);
             refetch();
         } catch (err) {
+            console.error('Delete pet failed:', err);
             alert('Failed to delete pet: ' + (err.message || 'Unknown error'));
         }
     };

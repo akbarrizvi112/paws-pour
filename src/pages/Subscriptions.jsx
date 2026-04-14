@@ -4,6 +4,8 @@ import { useSubscriptions } from '../hooks/useSubscriptions';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
+import { SubscriptionModal } from '../components/modals/SubscriptionModal';
+import { useState } from 'react';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -38,12 +40,24 @@ export function Subscriptions() {
         deleteSubscription
     } = useSubscriptions();
 
+    const [selectedSub, setSelectedSub] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleView = (sub) => {
+        setSelectedSub(sub);
+        setIsModalOpen(true);
+    };
+
     const handleDelete = async (id, petId) => {
+        if (!id) {
+            alert('Cannot delete: Subscription ID is missing.');
+            return;
+        }
         if (!window.confirm(`Are you sure you want to delete the subscription for Pet ID: ${petId}?`)) return;
         try {
             await deleteSubscription(id);
         } catch (err) {
-            alert('Failed to delete subscription.');
+            alert('Failed to delete subscription: ' + (err.message || 'Unknown error'));
         }
     };
 
@@ -119,9 +133,11 @@ export function Subscriptions() {
                             </TableHeader>
                             <TableBody>
                                 {subscriptions.map((sub, i) => {
-                                    const id = sub.id || sub._id || sub.petId; // Using petId as fallback if no _id
+                                    // FIX: Robust ID resolution for subscriptions. Try all common variations.
+                                    const id = sub.subscriptionId || sub.subscriptionID || sub.subId || sub.subID || sub.id || sub._id || sub.petId;
+                                    const displayId = id || `sub-${i}`;
                                     return (
-                                        <TableRow key={id ?? i}>
+                                        <TableRow key={displayId}>
                                             <TableCell>
                                                 <code className="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded">
                                                     {shortId(sub.petId)}
@@ -144,7 +160,14 @@ export function Subscriptions() {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <Button variant="ghost" size="sm" className="text-primary-600">View</Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-primary-600"
+                                                        onClick={() => handleView(sub)}
+                                                    >
+                                                        View
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -174,6 +197,12 @@ export function Subscriptions() {
                     </div>
                 )}
             </div>
+
+            <SubscriptionModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                subscription={selectedSub}
+            />
         </div>
     );
 }

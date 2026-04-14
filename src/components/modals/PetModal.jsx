@@ -8,13 +8,11 @@ export function PetModal({ isOpen, onClose, onSubmit, pet = null }) {
         name: '',
         age: '',
         species: '',
-        birthDate: '',
         weight: '',
         activityLevel: '',
         breedCategory: '',
         bodyConditionScore: '',
         profilePicture: '',
-        allergyIngredientIds: '',
         conditions: ''
     });
     const [loading, setLoading] = useState(false);
@@ -25,13 +23,11 @@ export function PetModal({ isOpen, onClose, onSubmit, pet = null }) {
                 name: pet.name || '',
                 age: pet.age || '',
                 species: pet.species || '',
-                birthDate: pet.birthDate ? String(pet.birthDate).split('T')[0] : '', // format as yyyy-mm-dd
                 weight: pet.weight || '',
                 activityLevel: pet.activityLevel || '',
                 breedCategory: pet.breedCategory || '',
                 bodyConditionScore: pet.bodyConditionScore || '',
                 profilePicture: pet.profilePicture || '',
-                allergyIngredientIds: Array.isArray(pet.allergyIngredientIds) ? pet.allergyIngredientIds.join(', ') : '',
                 conditions: Array.isArray(pet.conditions) ? pet.conditions.join(', ') : '',
             });
         } else {
@@ -39,13 +35,11 @@ export function PetModal({ isOpen, onClose, onSubmit, pet = null }) {
                 name: '',
                 age: '',
                 species: '',
-                birthDate: '',
                 weight: '',
                 activityLevel: '',
                 breedCategory: '',
                 bodyConditionScore: '',
                 profilePicture: '',
-                allergyIngredientIds: '',
                 conditions: ''
             });
         }
@@ -62,16 +56,29 @@ export function PetModal({ isOpen, onClose, onSubmit, pet = null }) {
         setLoading(true);
         try {
             const payload = {
-                ...formData,
-                weight: formData.weight ? Number(formData.weight) : undefined,
+                name: formData.name,
+                species: formData.species,
                 age: formData.age ? Number(formData.age) : undefined,
+                weight: formData.weight ? Number(formData.weight) : undefined,
+                activityLevel: formData.activityLevel,
+                breedCategory: formData.breedCategory,
                 bodyConditionScore: formData.bodyConditionScore ? Number(formData.bodyConditionScore) : undefined,
-                allergyIngredientIds: formData.allergyIngredientIds ? formData.allergyIngredientIds.split(',').map(a => a.trim()).filter(Boolean) : [],
+                profilePicture: formData.profilePicture,
                 conditions: formData.conditions ? formData.conditions.split(',').map(c => c.trim()).filter(Boolean) : [],
             };
+
+            // FIX: Remove empty strings/undefined that might trigger 400s
+            Object.keys(payload).forEach(key => {
+                if (payload[key] === '' || payload[key] === undefined) {
+                    delete payload[key];
+                }
+            });
+
+            console.log("PET MODAL SUBMITTING:", payload);
             await onSubmit(payload);
             onClose();
         } catch (err) {
+            console.error("PET MODAL SUBMIT ERROR:", err);
             alert('Operation failed: ' + (err.message || 'Unknown error'));
         } finally {
             setLoading(false);
@@ -101,15 +108,32 @@ export function PetModal({ isOpen, onClose, onSubmit, pet = null }) {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-primary-700 mb-1">Species *</label>
-                            <input name="species" value={formData.species} onChange={handleChange} className={inputClass} placeholder="e.g. DOG" required />
+                            <select
+                                name="species"
+                                value={formData.species}
+                                onChange={handleChange}
+                                className={`${inputClass} bg-white`}
+                                required
+                            >
+                                <option value="">Select Species...</option>
+                                <option value="DOG">DOG</option>
+                                <option value="CAT">CAT</option>
+                            </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-primary-700 mb-1">Breed Category</label>
-                            <input name="breedCategory" value={formData.breedCategory} onChange={handleChange} className={inputClass} placeholder="e.g. MEDIUM" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-primary-700 mb-1">Birth Date</label>
-                            <input name="birthDate" type="date" value={formData.birthDate} onChange={handleChange} className={inputClass} />
+                            <select
+                                name="breedCategory"
+                                value={formData.breedCategory}
+                                onChange={handleChange}
+                                className={`${inputClass} bg-white`}
+                            >
+                                <option value="">Select Breed Category...</option>
+                                <option value="SMALL">SMALL</option>
+                                <option value="MEDIUM">MEDIUM</option>
+                                <option value="LARGE">LARGE</option>
+                                <option value="GIANT">GIANT</option>
+                            </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-primary-700 mb-1">Age (years)</label>
@@ -121,19 +145,40 @@ export function PetModal({ isOpen, onClose, onSubmit, pet = null }) {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-primary-700 mb-1">Body Condition Score</label>
-                            <input name="bodyConditionScore" type="number" step="any" value={formData.bodyConditionScore} onChange={handleChange} className={inputClass} placeholder="e.g. 5" />
+                            <select
+                                name="bodyConditionScore"
+                                value={formData.bodyConditionScore}
+                                onChange={handleChange}
+                                className={`${inputClass} bg-white`}
+                            >
+                                <option value="">Select Score (1-9)...</option>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                                    <option key={num} value={num}>{num}</option>
+                                ))}
+                            </select>
                         </div>
                         <div className="col-span-2">
                             <label className="block text-sm font-medium text-primary-700 mb-1">Activity Level</label>
-                            <input name="activityLevel" value={formData.activityLevel} onChange={handleChange} className={inputClass} placeholder="e.g. NEUTERED_ADULT" />
+                            <select
+                                name="activityLevel"
+                                value={formData.activityLevel}
+                                onChange={handleChange}
+                                className={`${inputClass} bg-white`}
+                            >
+                                <option value="">Select Activity Level...</option>
+                                <option value="NEUTERED_ADULT">NEUTERED_ADULT</option>
+                                <option value="INTACT_ADULT">INTACT_ADULT</option>
+                                <option value="INACTIVE">INACTIVE</option>
+                                <option value="WEIGHT_LOSS">WEIGHT_LOSS</option>
+                                <option value="PUPPY">PUPPY</option>
+                                <option value="KITTEN">KITTEN</option>
+                                <option value="GESTATION">GESTATION</option>
+                                <option value="LACTATION">LACTATION</option>
+                            </select>
                         </div>
                         <div className="col-span-2">
                             <label className="block text-sm font-medium text-primary-700 mb-1">Profile Picture URL</label>
                             <input name="profilePicture" value={formData.profilePicture} onChange={handleChange} className={inputClass} placeholder="https://..." />
-                        </div>
-                        <div className="col-span-2">
-                            <label className="block text-sm font-medium text-primary-700 mb-1">Allergy Ingredient IDs</label>
-                            <input name="allergyIngredientIds" value={formData.allergyIngredientIds} onChange={handleChange} className={inputClass} placeholder="Comma-separated IDs..." />
                         </div>
                         <div className="col-span-2">
                             <label className="block text-sm font-medium text-primary-700 mb-1">Conditions</label>

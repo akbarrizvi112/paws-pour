@@ -50,7 +50,7 @@ export function TreatDatabaseTable({ treats, currentPage, totalPages, onPageChan
                                             </Button>
                                         )}
                                         {onDelete && (
-                                            <Button variant="ghost" size="sm" onClick={() => onDelete(treat.id || treat._id)} className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600">
+                                            <Button variant="ghost" size="sm" onClick={() => onDelete(treat)} className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600">
                                                 <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-600" />
                                             </Button>
                                         )}

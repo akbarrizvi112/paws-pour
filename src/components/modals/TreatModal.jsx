@@ -19,6 +19,7 @@ export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
         isActive: true,
         ingredientIds: ''
     });
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (treat) {
@@ -62,29 +63,43 @@ export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
+        try {
+            // Parse ingredients if provided
+            const parsedIngredients = formData.ingredientIds
+                ? formData.ingredientIds.split(',').map(i => i.trim()).filter(i => i)
+                : [];
 
-        // Parse ingredients if provided
-        const parsedIngredients = formData.ingredientIds
-            ? formData.ingredientIds.split(',').map(i => i.trim()).filter(i => i)
-            : [];
+            const submissionData = {
+                // FIX: Support treatId, treat_id, id, _id for max robustness
+                treatId: treat?.treatId || treat?.treatID || treat?.treat_id || treat?.id || treat?._id,
+                name: formData.name,
+                description: formData.description,
+                meatSource: formData.meatSource,
+                grainStatus: formData.grainStatus,
+                fatPercent: parseFloat(formData.fatPercent) || 0,
+                moisturePercent: parseFloat(formData.moisturePercent) || 0,
+                kcalPerGram: parseFloat(formData.kcalPerGram) || 0,
+                pricePerUnit: parseFloat(formData.pricePerUnit) || 0,
+                gramsPerUnit: parseFloat(formData.gramsPerUnit) || 0,
+                sodiumMgPerKg: parseFloat(formData.sodiumMgPerKg) || 0,
+                copperMgPerKg: parseFloat(formData.copperMgPerKg) || 0,
+                vitaminDIUPerKg: parseFloat(formData.vitaminDIUPerKg) || 0,
+                phosphorusMgPerKg: parseFloat(formData.phosphorusMgPerKg) || 0,
+                ingredientIds: parsedIngredients,
+                isActive: formData.isActive
+            };
 
-        const submissionData = {
-            ...formData,
-            fatPercent: parseFloat(formData.fatPercent) || 0,
-            moisturePercent: parseFloat(formData.moisturePercent) || 0,
-            kcalPerGram: parseFloat(formData.kcalPerGram) || 0,
-            pricePerUnit: parseFloat(formData.pricePerUnit) || 0,
-            gramsPerUnit: parseFloat(formData.gramsPerUnit) || 0,
-            sodiumMgPerKg: parseFloat(formData.sodiumMgPerKg) || 0,
-            copperMgPerKg: parseFloat(formData.copperMgPerKg) || 0,
-            vitaminDIUPerKg: parseFloat(formData.vitaminDIUPerKg) || 0,
-            phosphorusMgPerKg: parseFloat(formData.phosphorusMgPerKg) || 0,
-            ingredientIds: parsedIngredients
-        };
-
-        onSubmit(submissionData);
+            await onSubmit(submissionData);
+            onClose();
+        } catch (error) {
+            console.error("Treat submission failed:", error);
+            alert("Operation failed: " + (error.response?.data?.message || error.message || "Unknown error"));
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -92,7 +107,7 @@ export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
             <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl my-auto">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
                     <h2 className="text-xl font-bold text-gray-800">{treat ? 'Edit Treat' : 'Add New Treat'}</h2>
-                    <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-700">&times;</button>
+                    <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl leading-none">&times;</button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -117,21 +132,29 @@ export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
                         </div>
                         <div className="space-y-1">
                             <label className="text-sm font-medium text-gray-700">Meat Source</label>
-                            <input
-                                type="text"
+                            <select
                                 value={formData.meatSource}
                                 onChange={(e) => setFormData({ ...formData, meatSource: e.target.value })}
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
-                            />
+                                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
+                            >
+                                <option value="">Select Meat Source...</option>
+                                <option value="Poultry">Poultry</option>
+                                <option value="Beef">Beef</option>
+                                <option value="Fish">Fish</option>
+                                <option value="Lamb">Lamb</option>
+                            </select>
                         </div>
                         <div className="space-y-1">
                             <label className="text-sm font-medium text-gray-700">Grain Status</label>
-                            <input
-                                type="text"
+                            <select
                                 value={formData.grainStatus}
                                 onChange={(e) => setFormData({ ...formData, grainStatus: e.target.value })}
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
-                            />
+                                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
+                            >
+                                <option value="">Select Grain Status...</option>
+                                <option value="Grain Free">Grain Free</option>
+                                <option value="With Grain">With Grain</option>
+                            </select>
                         </div>
 
                         <div className="space-y-1">
@@ -253,8 +276,8 @@ export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
 
                     <div className="flex gap-3 pt-4 border-t border-gray-100 mt-4">
                         <Button type="button" variant="ghost" onClick={onClose} className="flex-1">Cancel</Button>
-                        <Button type="submit" className="flex-1 bg-primary text-white hover:bg-primary-600">
-                            {treat ? 'Update' : 'Create'}
+                        <Button type="submit" className="flex-1 bg-primary text-white hover:bg-primary-600" disabled={submitting}>
+                            {submitting ? 'Saving...' : (treat ? 'Update' : 'Create')}
                         </Button>
                     </div>
                 </form>

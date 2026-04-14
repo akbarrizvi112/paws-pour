@@ -35,9 +35,10 @@ export function ActivityChart() {
                 <CardTitle>Rule Engine Activity</CardTitle>
             </CardHeader>
             <CardContent>
-                {/* Explicitly sized container to prevent Recharts -1 width/height warning */}
-                <div style={{ width: '100%', height: 300, minHeight: 300, position: 'relative' }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                {/* FIX: Wrap in div with minWidth: 0 to prevent collapse in flex/grid */}
+                <div style={{ width: '100%', height: 300, minHeight: 300, position: 'relative', minWidth: 0 }}>
+                    {/* FIX: Set explicit height to 300 to prevent -1x-1 rendering */}
+                    <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eaf1ea" />
                             <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#9e734c' }} dy={10} />

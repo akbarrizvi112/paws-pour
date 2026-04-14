@@ -24,6 +24,7 @@ export function useTreats() {
 
     return {
         treats,
+        setTreats,
         loading,
         error,
         refetch: fetchTreats,

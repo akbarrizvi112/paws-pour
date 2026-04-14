@@ -6,8 +6,6 @@ const EMPTY_FORM = {
     description: '',
     category: '',
     isActive: true,
-    conditions: '',
-    actions: '',
 };
 
 export function RuleModal({ isOpen, onClose, onSubmit, rule }) {
@@ -21,12 +19,6 @@ export function RuleModal({ isOpen, onClose, onSubmit, rule }) {
                 description: rule.description || '',
                 category: rule.category || '',
                 isActive: rule.isActive !== undefined ? rule.isActive : rule.status === 'Active',
-                conditions: typeof rule.conditions === 'object'
-                    ? JSON.stringify(rule.conditions, null, 2)
-                    : rule.conditions || '',
-                actions: typeof rule.actions === 'object'
-                    ? JSON.stringify(rule.actions, null, 2)
-                    : rule.actions || '',
             });
         } else {
             setFormData(EMPTY_FORM);
@@ -41,18 +33,14 @@ export function RuleModal({ isOpen, onClose, onSubmit, rule }) {
         e.preventDefault();
         setSubmitting(true);
         try {
-            let parsedConditions = formData.conditions;
-            let parsedActions = formData.actions;
-            try { parsedConditions = JSON.parse(formData.conditions); } catch { /* keep as string */ }
-            try { parsedActions = JSON.parse(formData.actions); } catch { /* keep as string */ }
-
+            // FIX: Preserve existing rule logic (conditions/actions) if present in the original rule
+            // but remove them from the UI as requested.
             await onSubmit({
+                ...rule, // Keep existing fields like conditions/actions
                 name: formData.name,
                 description: formData.description,
                 category: formData.category,
                 isActive: formData.isActive,
-                conditions: parsedConditions,
-                actions: parsedActions,
             });
             onClose();
         } finally {
@@ -117,33 +105,6 @@ export function RuleModal({ isOpen, onClose, onSubmit, rule }) {
                         />
                     </div>
 
-                    {/* Conditions */}
-                    <div className="space-y-1">
-                        <label className="text-sm font-medium text-gray-700">
-                            Conditions <span className="text-xs text-gray-400">(JSON or free text)</span>
-                        </label>
-                        <textarea
-                            value={formData.conditions}
-                            onChange={e => set('conditions', e.target.value)}
-                            rows={3}
-                            placeholder='{"ingredient": "chocolate", "species": "dog"}'
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5e6f5e]/40 font-mono text-sm"
-                        />
-                    </div>
-
-                    {/* Actions */}
-                    <div className="space-y-1">
-                        <label className="text-sm font-medium text-gray-700">
-                            Actions <span className="text-xs text-gray-400">(JSON or free text)</span>
-                        </label>
-                        <textarea
-                            value={formData.actions}
-                            onChange={e => set('actions', e.target.value)}
-                            rows={3}
-                            placeholder='{"action": "block", "message": "Chocolate is toxic for dogs"}'
-                            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5e6f5e]/40 font-mono text-sm"
-                        />
-                    </div>
 
                     {/* Active toggle */}
                     <label className="flex items-center gap-2 cursor-pointer">

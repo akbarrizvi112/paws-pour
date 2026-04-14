@@ -22,5 +22,13 @@ export function usePets() {
         fetchPets();
     }, []);
 
-    return { pets, loading, error, refetch: fetchPets };
+    return {
+        pets,
+        loading,
+        error,
+        refetch: fetchPets,
+        createPet: petService.createPet,
+        updatePet: petService.updatePet,
+        deletePet: petService.deletePet
+    };
 }

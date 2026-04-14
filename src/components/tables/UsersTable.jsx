@@ -5,6 +5,8 @@ import { User, Edit, Trash2, Shield, Mail } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { userService } from '../../api/userService';
 
+const resolveId = (user) => user.userId || user.id || user._id;
+
 export function UsersTable() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -26,21 +28,24 @@ export function UsersTable() {
         fetchUsers();
     }, []);
 
-    const handleDelete = async (userId) => {
+    const handleDelete = async (user) => {
+        const id = resolveId(user);
+        if (!id) { alert('Cannot delete: user ID not found'); return; }
         if (!window.confirm('Are you sure you want to delete this user?')) return;
         try {
-            await userService.deleteUser(userId);
-            setUsers(users.filter(u => u.id !== userId));
+            await userService.deleteUser(id);
+            setUsers(users.filter(u => resolveId(u) !== id));
         } catch (err) {
             alert('Failed to delete user: ' + err.message);
         }
     };
 
     const handleToggleRole = async (user) => {
+        const id = resolveId(user);
         const newRole = user.role === 'Admin' ? 'User' : 'Admin';
         try {
-            await userService.updateUserProfile(user.id, { role: newRole });
-            setUsers(users.map(u => u.id === user.id ? { ...u, role: newRole } : u));
+            await userService.updateUserProfile(id, { role: newRole });
+            setUsers(users.map(u => resolveId(u) === id ? { ...u, role: newRole } : u));
         } catch (err) {
             alert('Failed to update user: ' + err.message);
         }
@@ -63,7 +68,7 @@ export function UsersTable() {
                     </TableHeader>
                     <TableBody>
                         {users.map((user) => (
-                            <TableRow key={user.id}>
+                            <TableRow key={resolveId(user)}>
                                 <TableCell className="font-medium flex items-center gap-2">
                                     <User className="w-4 h-4 text-accent" />
                                     {user.name}
@@ -92,7 +97,7 @@ export function UsersTable() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => handleDelete(user.id)}
+                                            onClick={() => handleDelete(user)}
                                             className="text-danger hover:bg-danger-soft"
                                             title="Delete User"
                                         >

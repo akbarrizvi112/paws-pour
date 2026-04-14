@@ -28,6 +28,7 @@ export function RuleEngine() {
         deleteRule,
         patchUnifiedRule,
         getRuleVersions,
+        createRuleVersion,
         refetch,
     } = useRules();
 
@@ -67,12 +68,31 @@ export function RuleEngine() {
                     await patchUnifiedRule(source, id, payload);
                 } else {
                     // Legacy rules: create a new version with updated payload
-                    // (no standalone "update" endpoint — version endpoint acts as the update)
                     const ruleId = editingRule.id ?? editingRule.ruleId;
-                    await createRule({ ...payload, ruleId });
+
+                    // FIX: The backend requires versionNumber and parametersJson object
+                    // We fetch versions first to determine the next number
+                    let nextVer = 1;
+                    try {
+                        const history = await getRuleVersions(ruleId);
+                        if (Array.isArray(history)) {
+                            nextVer = history.length + 1;
+                        }
+                    } catch (e) {
+                        console.warn("Could not fetch version history, defaulting to 1", e);
+                    }
+
+                    const versionPayload = {
+                        ruleId: ruleId,
+                        versionNumber: nextVer,
+                        parametersJson: {
+                            ...payload
+                        }
+                    };
+
+                    console.log("Creating new rule version:", versionPayload);
+                    await createRuleVersion(ruleId, versionPayload);
                 }
-            } else {
-                await createRule(payload);
             }
             setModalOpen(false);
         } catch (err) {
@@ -120,15 +140,7 @@ export function RuleEngine() {
                     </button>
                 </div>
 
-                {/* Create button — only for legacy rules */}
-                {!isUnified && (
-                    <Button
-                        onClick={openCreate}
-                        className="bg-[#5e6f5e] text-white hover:bg-[#4D5B4D] shadow-sm font-semibold"
-                    >
-                        + New Rule
-                    </Button>
-                )}
+                {/* Create button removed as per user request */}
             </div>
 
             {/* Category filter chips */}
@@ -189,7 +201,6 @@ export function RuleEngine() {
                         isUnified={isUnified}
                         onEdit={openEdit}
                         onDelete={!isUnified ? handleDelete : undefined}
-                        getRuleVersions={!isUnified ? getRuleVersions : undefined}
                     />
                 )}
             </div>

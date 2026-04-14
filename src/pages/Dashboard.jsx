@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/layout/PageHeader';
 import { StatCard } from '../components/dashboard/StatCard';
 import { ActivityChart } from '../components/dashboard/ActivityChart';
@@ -9,20 +10,34 @@ import { RuleEngineTable } from '../components/tables/RuleEngineTable';
 import { SubscriptionChart } from '../components/dashboard/SubscriptionChart';
 import { CalorieOverview } from '../components/dashboard/CalorieOverview';
 import { SafetyLogsTable } from '../components/tables/SafetyLogsTable';
+import { TreatModal } from '../components/modals/TreatModal';
+import { PetModal } from '../components/modals/PetModal';
 import { Button } from '../components/ui/Button';
 import { PawPrint, Bone, ShieldAlert, CreditCard } from 'lucide-react';
 
 import { usePets } from '../hooks/usePets';
 import { useTreats } from '../hooks/useTreats';
+import { treatService } from '../services/treatService';
+import { petService } from '../services/petService';
 import { useRules } from '../hooks/useRules';
 import { useSubscriptions } from '../hooks/useSubscriptions';
 import { useSafetyLogs } from '../hooks/useSafetyLogs';
 import { userService } from '../api/userService';
-import { useEffect } from 'react';
+
 
 export function Dashboard() {
-    const { pets, loading: petsLoading } = usePets();
-    const { treats, loading: treatsLoading } = useTreats();
+    const navigate = useNavigate();
+    const {
+        pets,
+        loading: petsLoading,
+        refetch: refetchPets
+    } = usePets();
+    const {
+        treats,
+        setTreats,
+        loading: treatsLoading,
+        refetch: refetchTreats
+    } = useTreats();
     const {
         rules: legacyRules,
         unifiedRules,
@@ -33,9 +48,108 @@ export function Dashboard() {
     const allRules = [...(unifiedRules || []), ...(legacyRules || [])];
     const { stats: subsStats, loading: subsLoading } = useSubscriptions();
     const { logs: safetyLogs, loading: safetyLoading } = useSafetyLogs();
-
     const [dashboardStats, setDashboardStats] = useState(null);
     const [statsLoading, setStatsLoading] = useState(true);
+
+    // Treat Modal State
+    const [treatModalOpen, setTreatModalOpen] = useState(false);
+    const [editingTreat, setEditingTreat] = useState(null);
+
+    // Pet Modal State
+    const [petModalOpen, setPetModalOpen] = useState(false);
+    const [editingPet, setEditingPet] = useState(null);
+
+    const handleOpenAddPet = () => {
+        setEditingPet(null);
+        setPetModalOpen(true);
+    };
+
+    const handleEditPet = (pet) => {
+        setEditingPet(pet);
+        setPetModalOpen(true);
+    };
+
+    const handleDeletePet = async (pet) => {
+        // FIX: Prioritize petId as specified by user
+        const petId = pet?.petId || pet?.petID || pet?.id || pet?._id || pet;
+        if (!petId || (typeof petId !== 'string' && typeof petId !== 'number')) {
+            console.error("Cannot delete pet: Missing ID");
+            return;
+        }
+
+        if (!window.confirm('Are you sure you want to delete this pet profile?')) return;
+        try {
+            await petService.deletePet(petId);
+            refetchPets();
+        } catch (error) {
+            console.error("Failed to delete pet:", error);
+            alert("Failed to delete pet: " + (error.response?.data?.message || error.message || "Unknown error"));
+        }
+    };
+
+    const handlePetSubmit = async (data) => {
+        // No try-catch here as it's handled in PetModal
+        if (editingPet) {
+            // FIX: Prioritize petId as specified by user
+            const petId = data?.petId || data?.petID || data?.id || data?._id ||
+                editingPet?.petId || editingPet?.petID || editingPet?.id || editingPet?._id;
+            await petService.updatePet(petId, data);
+        } else {
+            await petService.createPet(data);
+        }
+        refetchPets();
+    };
+
+    const handleOpenAddTreat = () => {
+        setEditingTreat(null);
+        setTreatModalOpen(true);
+    };
+
+    const handleEditTreat = (treat) => {
+        setEditingTreat(treat);
+        setTreatModalOpen(true);
+    };
+
+    const handleDeleteTreat = async (treat) => {
+        // FIX: Prioritize treatId as specified by user
+        const id = treat?.treatId || treat?.treatID || treat?.id || treat?._id || treat;
+        if (!id || (typeof id !== 'string' && typeof id !== 'number')) {
+            console.error("Cannot delete treat: Missing ID");
+            return;
+        }
+
+        if (!window.confirm('Are you sure you want to delete this treat?')) return;
+        try {
+            await treatService.deleteTreat(id);
+            // FIX: Robust state update filter
+            setTreats(prev => prev.filter(t => (t.treatId || t.treatID || t.id || t._id) !== id));
+            refetchTreats();
+        } catch (error) {
+            console.error("Failed to delete treat:", error);
+            alert("Failed to delete treat: " + (error.response?.data?.message || error.message || "Unknown error"));
+        }
+    };
+
+    const handleTreatSubmit = async (data) => {
+        // FIX: Ultra-robust treatId resolution. Check modal data AND editingTreat state.
+        // Check all common field names: treatId, treatID, treat_id, id, _id
+        const treatId = data?.treatId || data?.treatID || data?.treat_id || data?.id || data?._id ||
+            editingTreat?.treatId || editingTreat?.treatID || editingTreat?.treat_id || editingTreat?.id || editingTreat?._id;
+
+        if (editingTreat) {
+            if (!treatId) {
+                console.error("Critical: Treat ID resolved to null/undefined", { data, editingTreat });
+                alert("Operation failed: Could not resolve Treat ID. Please refresh and try again.");
+                return;
+            }
+            console.log("Updating treat with resolved ID:", treatId);
+            await treatService.updateTreat(treatId, data);
+        } else {
+            console.log("Creating new treat");
+            await treatService.createTreat(data);
+        }
+        refetchTreats();
+    };
 
     useEffect(() => {
         const fetchDashboardStats = async () => {
@@ -122,17 +236,34 @@ export function Dashboard() {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-primary-900">Recent Pet Profiles</h2>
-                                <Button variant="ghost" className="text-primary-600">View All &gt;</Button>
+                                <Button
+                                    variant="ghost"
+                                    className="text-primary-600"
+                                    onClick={() => navigate('/pets')}
+                                >
+                                    View All &gt;
+                                </Button>
                             </div>
                             {petsLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                                <PetProfilesTable pets={Array.isArray(pets) ? pets.slice(0, 5) : []} onEdit={() => { }} onDelete={() => { }} onNutrition={() => { }} />
+                                <PetProfilesTable
+                                    pets={Array.isArray(pets) ? pets.slice(0, 5) : []}
+                                    onEdit={handleEditPet}
+                                    onDelete={handleDeletePet}
+                                    onNutrition={(pet) => navigate('/pets')}
+                                />
                             )}
                         </div>
 
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-primary-900">Rule Engine Control</h2>
-                                <Button variant="ghost" className="text-primary-600">View All &gt;</Button>
+                                <Button
+                                    variant="ghost"
+                                    className="text-primary-600"
+                                    onClick={() => navigate('/rules')}
+                                >
+                                    View All &gt;
+                                </Button>
                             </div>
                             {rulesLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
                                 <RuleEngineTable
@@ -149,14 +280,28 @@ export function Dashboard() {
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-primary-900">Treat Database Management</h2>
                                 <div className="flex gap-2">
-                                    <Button size="sm" className="bg-primary hover:bg-primary-600 text-white">Add Treat</Button>
-                                    <Button size="sm" variant="outline">Edit</Button>
-                                    <Button size="sm" variant="outline">Disable</Button>
+                                    <Button
+                                        size="sm"
+                                        className="bg-primary hover:bg-primary-600 text-white"
+                                        onClick={handleOpenAddTreat}
+                                    >
+                                        Add Treat
+                                    </Button>
+                                    {/* FIX: Removed disabled button */}
+                                    <Button size="sm" variant="outline" onClick={() => alert('Please use the edit icon in the table rows.')}>Edit</Button>
                                 </div>
                             </div>
                             {treatsLoading ? <div className="h-[400px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                                <TreatDatabaseTable treats={treats.slice(0, 5)} currentPage={1} totalPages={8} onPageChange={() => { }} />
+                                <TreatDatabaseTable
+                                    treats={treats.slice(0, 5)}
+                                    currentPage={1}
+                                    totalPages={8}
+                                    onPageChange={() => { }}
+                                    onEdit={handleEditTreat}
+                                    onDelete={handleDeleteTreat}
+                                />
                             )}
+
                         </div>
 
                         <div className="space-y-8">
@@ -171,7 +316,13 @@ export function Dashboard() {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-xl font-bold text-primary-900">Safety Logs</h2>
-                                    <Button variant="ghost" className="text-primary-600">View All &gt;</Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="text-primary-600"
+                                        onClick={() => navigate('/safety')}
+                                    >
+                                        View All &gt;
+                                    </Button>
                                 </div>
                                 {safetyLoading ? <div className="h-48 bg-surface rounded-2xl border border-primary-100 animate-pulse" /> : (
                                     <SafetyLogsTable logs={Array.isArray(safetyLogs) ? safetyLogs.slice(0, 5) : []} currentPage={1} totalPages={1} onPageChange={() => { }} />
@@ -186,11 +337,26 @@ export function Dashboard() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-primary-900">Pet Profiles</h2>
-                        <Button size="sm" className="bg-primary hover:bg-primary-600 text-white">Add Pet Profile</Button>
+                        <Button
+                            size="sm"
+                            className="bg-primary hover:bg-primary-600 text-white"
+                            onClick={handleOpenAddPet}
+                        >
+                            Add Pet Profile
+                        </Button>
                     </div>
                     {petsLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                        <PetProfilesTable pets={pets} currentPage={1} totalPages={5} onPageChange={() => { }} />
+                        <PetProfilesTable
+                            pets={pets}
+                            currentPage={1}
+                            totalPages={5}
+                            onPageChange={() => { }}
+                            onEdit={handleEditPet}
+                            onDelete={handleDeletePet}
+                            onNutrition={(pet) => navigate('/pets')}
+                        />
                     )}
+
                 </div>
             )}
 
@@ -199,16 +365,30 @@ export function Dashboard() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-primary-900">Treat Database</h2>
                         <div className="flex gap-2">
-                            <Button size="sm" className="bg-primary hover:bg-primary-600 text-white">Add Treat</Button>
-                            <Button size="sm" variant="outline">Edit</Button>
-                            <Button size="sm" variant="outline">Disable</Button>
+                            <Button
+                                size="sm"
+                                className="bg-primary hover:bg-primary-600 text-white"
+                                onClick={handleOpenAddTreat}
+                            >
+                                Add Treat
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => alert('Please use the edit icon in the table rows.')}>Edit</Button>
+
                         </div>
                     </div>
                     {treatsLoading ? <div className="h-[400px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
-                        <TreatDatabaseTable treats={treats} currentPage={1} totalPages={8} onPageChange={() => { }} />
+                        <TreatDatabaseTable
+                            treats={treats}
+                            currentPage={1}
+                            totalPages={8}
+                            onPageChange={() => { }}
+                            onEdit={handleEditTreat}
+                            onDelete={handleDeleteTreat}
+                        />
                     )}
                 </div>
             )}
+
 
             {activeTab === 'Rule Engine' && (
                 <div className="space-y-4">
@@ -268,6 +448,22 @@ export function Dashboard() {
                 </div>
             )}
 
+            <TreatModal
+                isOpen={treatModalOpen}
+                onClose={() => setTreatModalOpen(false)}
+                onSubmit={handleTreatSubmit}
+                treat={editingTreat}
+            />
+
+            <PetModal
+                isOpen={petModalOpen}
+                onClose={() => setPetModalOpen(false)}
+                onSubmit={handlePetSubmit}
+                pet={editingPet}
+            />
+
+
         </div>
+
     );
 }

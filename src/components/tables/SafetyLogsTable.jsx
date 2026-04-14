@@ -1,42 +1,134 @@
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 import { Badge } from '../ui/Badge';
-import { PawPrint } from 'lucide-react';
+import { PawPrint, X, Activity, AlertTriangle, Info, Clock, Terminal } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { useEffect } from 'react';
 import { Pagination } from '../ui/Pagination';
 import { safetyService } from '../../services/safetyService';
 
 // ─── Detail drawer ─────────────────────────────────────────────────────────────
 
-function LogDetailDrawer({ logId, onClose }) {
-    const [detail, setDetail] = useState(null);
+function LogDetailDrawer({ logId, initialLog, onClose }) {
+    const [detail, setDetail] = useState(initialLog || null);
     const [loading, setLoading] = useState(false);
 
-    if (!detail && !loading) {
-        setLoading(true);
-        safetyService.getLogById(logId)
-            .then(data => setDetail(data))
-            .catch(() => setDetail({}))
-            .finally(() => setLoading(false));
-    }
+    useEffect(() => {
+        if (logId && logId !== 'undefined' && typeof logId === 'string' && logId.length > 5) {
+            setLoading(true);
+            safetyService.getLogById(logId)
+                .then(data => setDetail(data))
+                .catch((err) => {
+                    console.error("Failed to fetch log details:", err);
+                    if (!detail) setDetail(initialLog || {});
+                })
+                .finally(() => setLoading(false));
+        }
+    }, [logId]);
+
+    const renderValue = (val) => {
+        if (typeof val === 'object' && val !== null) {
+            return (
+                <pre className="text-[10px] bg-gray-50 p-2 rounded-lg border border-gray-100 mt-1 overflow-x-auto">
+                    {JSON.stringify(val, null, 2)}
+                </pre>
+            );
+        }
+        return <span className="text-gray-900 font-semibold">{String(val)}</span>;
+    };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-3xl w-full max-w-lg max-h-[70vh] overflow-y-auto shadow-2xl">
-                <div className="p-5 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                    <h3 className="text-lg font-bold text-gray-800">Log Detail</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col">
+                {/* Header */}
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900">Safety Log Detail</h3>
+                        <p className="text-xs text-gray-500 font-mono mt-1">ID: {logId}</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400 hover:text-gray-600">
+                        <X className="w-6 h-6" />
+                    </button>
                 </div>
-                <div className="p-5">
-                    {loading && (
-                        <div className="flex justify-center py-8 text-sm text-gray-400">
-                            <span className="animate-spin mr-2">⟳</span> Loading…
+
+                {/* Content */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-6">
+                    {loading && !detail && (
+                        <div className="flex flex-col items-center justify-center py-12 text-primary-300">
+                            <span className="animate-spin mb-2 text-2xl">⟳</span>
+                            <span className="text-sm">Fetching event details...</span>
                         </div>
                     )}
-                    {!loading && detail && (
-                        <pre className="text-xs bg-gray-50 rounded-xl p-4 overflow-auto border border-gray-100 whitespace-pre-wrap">
-                            {JSON.stringify(detail, null, 2)}
-                        </pre>
+
+                    {detail && (
+                        <>
+                            {/* Key Information Cards */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                                    <span className="text-[10px] uppercase tracking-wider text-gray-400 block mb-1">Action / Event</span>
+                                    <span className="text-sm font-bold text-gray-900">{detail.action || detail.event || detail.message || '—'}</span>
+                                </div>
+                                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                                    <span className="text-[10px] uppercase tracking-wider text-gray-400 block mb-1">Severity / Level</span>
+                                    <div className="mt-1">
+                                        <Badge variant={severityVariant(detail.severity || detail.level)}>{detail.severity || detail.level || '—'}</Badge>
+                                    </div>
+                                </div>
+                                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                                    <span className="text-[10px] uppercase tracking-wider text-gray-400 block mb-1">Pet Association</span>
+                                    <span className="text-sm font-bold text-gray-900">{detail.petId || detail.pet || 'INTERNAL'}</span>
+                                </div>
+                                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                                    <span className="text-[10px] uppercase tracking-wider text-gray-400 block mb-1">Timestamp</span>
+                                    <span className="text-sm font-bold text-gray-900">{formatDate(detail.timestamp || detail.createdAt || detail.date)}</span>
+                                </div>
+                            </div>
+
+                            {/* Detailed Metadata / Context */}
+                            <div className="space-y-4">
+                                <h4 className="text-sm font-bold text-gray-700 px-1 border-l-4 border-primary-400 pl-3">Context & Metadata</h4>
+                                <div className="rounded-2xl border border-gray-100 overflow-hidden">
+                                    <table className="w-full text-sm">
+                                        <tbody className="divide-y divide-gray-50">
+                                            {Object.entries(detail).map(([key, value]) => {
+                                                // Skip keys already shown in cards
+                                                if (['action', 'event', 'message', 'severity', 'level', 'petId', 'pet', 'timestamp', 'createdAt', 'date', 'logId', 'id', '_id'].includes(key)) return null;
+                                                return (
+                                                    <tr key={key} className="bg-white">
+                                                        <td className="px-4 py-3 text-gray-500 font-medium w-1/3 align-top">{key}</td>
+                                                        <td className="px-4 py-3 text-gray-900">{renderValue(value)}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* Raw Data for Admins */}
+                            <div className="space-y-2">
+                                <details className="group">
+                                    <summary className="text-[11px] font-bold text-gray-400 cursor-pointer hover:text-gray-600 transition-colors list-none flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-gray-300 group-open:bg-primary-500"></div>
+                                        SHOW RAW JSON DATA
+                                    </summary>
+                                    <div className="mt-3">
+                                        <pre className="text-[10px] bg-gray-900 text-gray-300 rounded-xl p-4 overflow-auto border border-gray-800 whitespace-pre-wrap leading-relaxed shadow-inner">
+                                            {JSON.stringify(detail, null, 2)}
+                                        </pre>
+                                    </div>
+                                </details>
+                            </div>
+                        </>
                     )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+                    <Button onClick={onClose} className="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm rounded-2xl h-12 font-bold">
+                        Close Log
+                    </Button>
                 </div>
             </div>
         </div>
@@ -70,6 +162,12 @@ function severityVariant(severity) {
 
 export function SafetyLogsTable({ logs, currentPage, totalPages, onPageChange, onPetFilter }) {
     const [selectedLogId, setSelectedLogId] = useState(null);
+    const [selectedLog, setSelectedLog] = useState(null);
+
+    const handleViewLog = (log, id) => {
+        setSelectedLogId(String(id));
+        setSelectedLog(log);
+    };
 
     return (
         <>
@@ -135,7 +233,7 @@ export function SafetyLogsTable({ logs, currentPage, totalPages, onPageChange, o
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <button
-                                                onClick={() => setSelectedLogId(String(logId))}
+                                                onClick={() => handleViewLog(log, logId)}
                                                 className="text-xs text-primary-400 hover:text-[#5e6f5e] font-medium transition-colors"
                                             >
                                                 View →
@@ -162,7 +260,14 @@ export function SafetyLogsTable({ logs, currentPage, totalPages, onPageChange, o
             </div>
 
             {selectedLogId && (
-                <LogDetailDrawer logId={selectedLogId} onClose={() => setSelectedLogId(null)} />
+                <LogDetailDrawer
+                    logId={selectedLogId}
+                    initialLog={selectedLog}
+                    onClose={() => {
+                        setSelectedLogId(null);
+                        setSelectedLog(null);
+                    }}
+                />
             )}
         </>
     );
