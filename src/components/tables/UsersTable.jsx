@@ -4,13 +4,20 @@ import { Badge } from '../ui/Badge';
 import { User, Edit, Trash2, Shield, Mail } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { userService } from '../../api/userService';
+import { useToast } from '../../context/ToastContext';
+import { Loader } from '../ui/Loader';
+
+import { UserModal } from '../modals/UserModal';
 
 const resolveId = (user) => user.userId || user.id || user._id;
 
 export function UsersTable() {
+    const { showToast } = useToast();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchUsers = async () => {
         try {
@@ -35,23 +42,31 @@ export function UsersTable() {
         try {
             await userService.deleteUser(id);
             setUsers(users.filter(u => resolveId(u) !== id));
+            showToast('User deleted successfully');
         } catch (err) {
             alert('Failed to delete user: ' + err.message);
         }
     };
 
-    const handleToggleRole = async (user) => {
-        const id = resolveId(user);
-        const newRole = user.role === 'Admin' ? 'User' : 'Admin';
+    const handleEditClick = (user) => {
+        setSelectedUser(user);
+        setIsModalOpen(true);
+    };
+
+    const handleEditSubmit = async (data) => {
+        const id = resolveId(selectedUser);
         try {
-            await userService.updateUserProfile(id, { role: newRole });
-            setUsers(users.map(u => resolveId(u) === id ? { ...u, role: newRole } : u));
+            const updatedUser = await userService.updateUserProfile(id, data);
+
+            // Merge changes back into local state
+            setUsers(users.map(u => resolveId(u) === id ? { ...u, ...data, ...(updatedUser || {}) } : u));
+            showToast('User profile updated successfully');
         } catch (err) {
-            alert('Failed to update user: ' + err.message);
+            throw err; // UserModal will handle the alert
         }
     };
 
-    if (loading) return <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div>;
+    if (loading) return <Loader />;
     if (error) return <div className="p-8 text-center text-danger font-medium bg-danger-soft rounded-2xl border border-danger-200">{error}</div>;
 
     return (
@@ -80,8 +95,8 @@ export function UsersTable() {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant={user.role === 'Admin' ? 'success' : 'default'}>
-                                        {user.role}
+                                    <Badge variant={(user.accountType === 'ADMIN' || user.role === 'Admin') ? 'success' : 'default'}>
+                                        {user.accountType || user.role}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
@@ -89,10 +104,10 @@ export function UsersTable() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => handleToggleRole(user)}
-                                            title="Toggle Role"
+                                            onClick={() => handleEditClick(user)}
+                                            title="Edit Profile"
                                         >
-                                            <Shield className="w-4 h-4 text-primary-600" />
+                                            <Edit className="w-4 h-4 text-primary-600" />
                                         </Button>
                                         <Button
                                             variant="ghost"
@@ -117,6 +132,16 @@ export function UsersTable() {
                     </TableBody>
                 </Table>
             </div>
+
+            <UserModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setSelectedUser(null);
+                }}
+                onSubmit={handleEditSubmit}
+                user={selectedUser}
+            />
         </div>
     );
 }

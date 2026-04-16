@@ -57,6 +57,12 @@ export function useRules() {
         setRules(prev => prev.filter(r => (r.id ?? r.ruleId) !== ruleId));
     }, []);
 
+    const patchRule = useCallback(async (id, payload) => {
+        const updated = await ruleService.patchRule(id, payload);
+        await fetchLegacyRules();
+        return updated;
+    }, [fetchLegacyRules]);
+
     // ─── Unified patch ────────────────────────────────────────────────────────
 
     const patchUnifiedRule = useCallback(async (source, id, payload) => {
@@ -90,6 +96,7 @@ export function useRules() {
         // actions
         createRule,
         deleteRule,
+        patchRule,
         patchUnifiedRule,
         getRuleVersions,
         createRuleVersion,

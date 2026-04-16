@@ -3,8 +3,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { userService } from '../../api/userService';
+import { useNavigate } from 'react-router-dom';
 
 export function RuleTransparency() {
+    const navigate = useNavigate();
     const [decisions, setDecisions] = useState({ safeApprovals: 0, allergyBlocks: 0, toxicBlocks: 0 });
     const [loading, setLoading] = useState(true);
 
@@ -69,7 +71,11 @@ export function RuleTransparency() {
                     </div>
                 </div>
 
-                <Button variant="outline" className="w-full mt-6 py-6 text-base font-semibold">
+                <Button
+                    variant="outline"
+                    className="w-full mt-6 py-6 text-base font-semibold"
+                    onClick={() => navigate('/rules')}
+                >
                     View Rules
                 </Button>
             </CardContent>

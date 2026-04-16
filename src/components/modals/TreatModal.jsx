@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
+import { ingredientService } from '../../services/ingredientService';
+import { ChevronDown, Check, X } from 'lucide-react';
 
 export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
     const [formData, setFormData] = useState({
@@ -20,6 +22,9 @@ export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
         ingredientIds: ''
     });
     const [submitting, setSubmitting] = useState(false);
+    const [availableIngredients, setAvailableIngredients] = useState([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [loadingIngredients, setLoadingIngredients] = useState(false);
 
     useEffect(() => {
         if (treat) {
@@ -60,6 +65,34 @@ export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
             });
         }
     }, [treat, isOpen]);
+
+    useEffect(() => {
+        if (isOpen) {
+            const fetchIngredients = async () => {
+                setLoadingIngredients(true);
+                try {
+                    const data = await ingredientService.getIngredients();
+                    setAvailableIngredients(data || []);
+                } catch (error) {
+                    console.error("Failed to fetch ingredients:", error);
+                } finally {
+                    setLoadingIngredients(false);
+                }
+            };
+            fetchIngredients();
+        }
+    }, [isOpen]);
+
+    const toggleIngredient = (id) => {
+        const currentIds = formData.ingredientIds ? formData.ingredientIds.split(', ').filter(i => i) : [];
+        let newIds;
+        if (currentIds.includes(id)) {
+            newIds = currentIds.filter(item => item !== id);
+        } else {
+            newIds = [...currentIds, id];
+        }
+        setFormData({ ...formData, ingredientIds: newIds.join(', ') });
+    };
 
     if (!isOpen) return null;
 
@@ -250,15 +283,49 @@ export function TreatModal({ isOpen, onClose, onSubmit, treat }) {
                             />
                         </div>
 
-                        <div className="space-y-1 col-span-2">
-                            <label className="text-sm font-medium text-gray-700">Ingredient IDs (comma separated)</label>
-                            <input
-                                type="text"
-                                value={formData.ingredientIds}
-                                onChange={(e) => setFormData({ ...formData, ingredientIds: e.target.value })}
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
-                                placeholder="ingredient-id-1, ingredient-id-2"
-                            />
+                        <div className="space-y-1 col-span-2 relative">
+                            <label className="text-sm font-medium text-gray-700">Ingredient IDs (Multi-select)</label>
+                            <div
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white min-h-[42px] cursor-pointer flex items-center justify-between"
+                            >
+                                <span className="text-sm text-gray-600 truncate mr-2">
+                                    {formData.ingredientIds || 'Select ingredients...'}
+                                </span>
+                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            </div>
+
+                            {isDropdownOpen && (
+                                <div className="absolute z-20 top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto p-2 space-y-1">
+                                    {loadingIngredients ? (
+                                        <div className="p-4 text-center text-xs text-gray-400">Loading ingredients...</div>
+                                    ) : availableIngredients.length === 0 ? (
+                                        <div className="p-4 text-center text-xs text-gray-400">No ingredients found</div>
+                                    ) : (
+                                        availableIngredients.map((ing) => {
+                                            const id = ing.ingId || ing.id;
+                                            const isSelected = formData.ingredientIds.split(', ').includes(id);
+                                            return (
+                                                <div
+                                                    key={id}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleIngredient(id);
+                                                    }}
+                                                    className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors ${isSelected ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-50 text-gray-600'}`}
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium">{ing.name}</span>
+                                                        <span className="text-[10px] opacity-70">{id}</span>
+                                                    </div>
+                                                    {isSelected && <Check className="w-4 h-4" />}
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            )}
+                            {isDropdownOpen && <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)}></div>}
                         </div>
 
                         <div className="space-y-1">

@@ -4,13 +4,12 @@ import { RuleEngineTable } from '../components/tables/RuleEngineTable';
 import { RuleModal } from '../components/modals/RuleModal';
 import { useRules } from '../hooks/useRules';
 import { Button } from '../components/ui/Button';
+import { useToast } from '../context/ToastContext';
+import { Loader } from '../components/ui/Loader';
 
 const CATEGORY_FILTERS = [
     { label: 'All', value: '' },
     { label: 'Calorie', value: 'calorie' },
-    { label: 'Species Compatibility', value: 'species compatibility' },
-    { label: 'Toxic Ingredients', value: 'toxic ingredients' },
-    { label: 'Allergy Filters', value: 'allergy filters' },
     { label: 'Dietary Restrictions', value: 'dietary restrictions' },
     { label: 'Portion Adjustments', value: 'portion adjustments' },
     { label: 'Activity Multiplier', value: 'activity multiplier' },
@@ -36,6 +35,7 @@ export function RuleEngine() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingRule, setEditingRule] = useState(null);
     const [actionError, setActionError] = useState(null);
+    const { showToast } = useToast();
 
     const isUnified = activeTab === 'unified';
     const rawList = isUnified ? unifiedRules : rules;
@@ -59,22 +59,31 @@ export function RuleEngine() {
 
     const handleModalSubmit = async (payload) => {
         setActionError(null);
+        const { isActive, ...restPayload } = payload;
         try {
             if (editingRule) {
-                // For unified rules, use PATCH unified endpoint
+                const id = editingRule.id ?? editingRule.ruleId;
+
                 if (isUnified) {
                     const source = editingRule.source ?? editingRule.ruleSource ?? 'activity_multiplier';
-                    const id = editingRule.id ?? editingRule.ruleId;
                     await patchUnifiedRule(source, id, payload);
                 } else {
-                    // Legacy rules: create a new version with updated payload
-                    const ruleId = editingRule.id ?? editingRule.ruleId;
+                    // Legacy rules: 
+                    // 1. Update status if it changed
+                    if (editingRule.isActive !== isActive) {
+                        try {
+                            await patchRule(id, { isActive });
+                        } catch (e) {
+                            console.warn("Direct status patch failed", e);
+                        }
+                    }
 
-                    // FIX: The backend requires versionNumber and parametersJson object
-                    // We fetch versions first to determine the next number
+                    // 2. Create a new version for other changes
+                    // We check if other fields changed to avoid redundant versions, 
+                    // but for simplicity we follow the "edit = new version" pattern if any field changed.
                     let nextVer = 1;
                     try {
-                        const history = await getRuleVersions(ruleId);
+                        const history = await getRuleVersions(id);
                         if (Array.isArray(history)) {
                             nextVer = history.length + 1;
                         }
@@ -83,21 +92,20 @@ export function RuleEngine() {
                     }
 
                     const versionPayload = {
-                        ruleId: ruleId,
+                        ruleId: id,
                         versionNumber: nextVer,
-                        parametersJson: {
-                            ...payload
-                        }
+                        parametersJson: { ...payload }
                     };
 
                     console.log("Creating new rule version:", versionPayload);
-                    await createRuleVersion(ruleId, versionPayload);
+                    await createRuleVersion(id, versionPayload);
                 }
             }
             setModalOpen(false);
+            showToast('Rule updated successfully');
         } catch (err) {
             setActionError(err?.response?.data?.message ?? err.message ?? 'Request failed');
-            throw err; // keep modal open for user to retry
+            throw err;
         }
     };
 
@@ -105,6 +113,7 @@ export function RuleEngine() {
         setActionError(null);
         try {
             await deleteRule(ruleId);
+            showToast('Rule deleted successfully');
         } catch (err) {
             setActionError(err?.response?.data?.message ?? err.message ?? 'Delete failed');
         }
@@ -194,13 +203,14 @@ export function RuleEngine() {
                 </div>
 
                 {loading ? (
-                    <div className="h-64 rounded-2xl bg-surface border border-primary-100 animate-pulse" />
+                    <Loader />
                 ) : (
                     <RuleEngineTable
                         rules={displayedRules}
                         isUnified={isUnified}
                         onEdit={openEdit}
                         onDelete={!isUnified ? handleDelete : undefined}
+                        hideActions={false}
                     />
                 )}
             </div>

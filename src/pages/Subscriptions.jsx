@@ -5,7 +5,9 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
 import { SubscriptionModal } from '../components/modals/SubscriptionModal';
+import { useToast } from '../context/ToastContext';
 import { useState } from 'react';
+import { Loader } from '../components/ui/Loader';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,7 @@ export function Subscriptions() {
 
     const [selectedSub, setSelectedSub] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const { showToast } = useToast();
 
     const handleView = (sub) => {
         setSelectedSub(sub);
@@ -56,6 +59,7 @@ export function Subscriptions() {
         if (!window.confirm(`Are you sure you want to delete the subscription for Pet ID: ${petId}?`)) return;
         try {
             await deleteSubscription(id);
+            showToast('Subscription deleted successfully');
         } catch (err) {
             alert('Failed to delete subscription: ' + (err.message || 'Unknown error'));
         }
@@ -117,7 +121,7 @@ export function Subscriptions() {
                 )}
 
                 {loading ? (
-                    <div className="h-64 rounded-2xl bg-surface border border-primary-100 animate-pulse" />
+                    <Loader />
                 ) : (
                     <div className="rounded-xl border border-primary-100 bg-surface overflow-hidden shadow-sm">
                         <Table>

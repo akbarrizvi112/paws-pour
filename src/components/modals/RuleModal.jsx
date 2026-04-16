@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
+import { useToast } from '../../context/ToastContext';
 
 const EMPTY_FORM = {
     name: '',
@@ -9,6 +10,7 @@ const EMPTY_FORM = {
 };
 
 export function RuleModal({ isOpen, onClose, onSubmit, rule }) {
+    const { showToast } = useToast();
     const [formData, setFormData] = useState(EMPTY_FORM);
     const [submitting, setSubmitting] = useState(false);
 
@@ -42,6 +44,7 @@ export function RuleModal({ isOpen, onClose, onSubmit, rule }) {
                 category: formData.category,
                 isActive: formData.isActive,
             });
+            showToast(rule ? 'Rule updated successfully' : 'Rule created successfully');
             onClose();
         } finally {
             setSubmitting(false);

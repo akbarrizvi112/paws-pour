@@ -4,7 +4,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 
 
-export function RuleEngineTable({ rules, onEdit, onDelete, isUnified }) {
+export function RuleEngineTable({ rules, onEdit, onDelete, isUnified, hideActions = false }) {
     const [deletingId, setDeletingId] = useState(null);
 
     const resolveId = (rule) => rule.id ?? rule.ruleId ?? rule._id;
@@ -38,7 +38,7 @@ export function RuleEngineTable({ rules, onEdit, onDelete, isUnified }) {
                             <TableHead>Category</TableHead>
                             {isUnified && <TableHead>Source</TableHead>}
                             <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            {!hideActions && <TableHead className="text-right">Actions</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -77,38 +77,40 @@ export function RuleEngineTable({ rules, onEdit, onDelete, isUnified }) {
                                             {status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex items-center justify-end gap-1">
-                                            {onEdit && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => onEdit(rule)}
-                                                    className="text-primary-600 hover:text-primary-900 text-xs"
-                                                >
-                                                    Edit
-                                                </Button>
-                                            )}
-                                            {onDelete && !isUnified && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(rule)}
-                                                    disabled={isDeleting}
-                                                    className="text-red-400 hover:text-red-600 text-xs disabled:opacity-50"
-                                                >
-                                                    {isDeleting ? '…' : 'Delete'}
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </TableCell>
+                                    {!hideActions && (
+                                        <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-1">
+                                                {onEdit && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => onEdit(rule)}
+                                                        className="text-primary-600 hover:text-primary-900 text-xs"
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                )}
+                                                {onDelete && !isUnified && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDelete(rule)}
+                                                        disabled={isDeleting}
+                                                        className="text-red-400 hover:text-red-600 text-xs disabled:opacity-50"
+                                                    >
+                                                        {isDeleting ? '…' : 'Delete'}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             );
                         })}
 
                         {rules.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={isUnified ? 5 : 4} className="h-24 text-center text-primary-400">
+                                <TableCell colSpan={3 + (isUnified ? 1 : 0) + (hideActions ? 0 : 1)} className="h-24 text-center text-primary-400">
                                     No rules configured.
                                 </TableCell>
                             </TableRow>

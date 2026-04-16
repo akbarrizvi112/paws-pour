@@ -7,9 +7,12 @@ import { usePets } from '../hooks/usePets';
 import { petService } from '../services/petService';
 import { Button } from '../components/ui/Button';
 import { PawPrint, Search } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { Loader } from '../components/ui/Loader';
 
 export function PetProfiles() {
     const { pets, loading, refetch } = usePets();
+    const { showToast } = useToast();
     const [modalOpen, setModalOpen] = useState(false);
     const [nutritionModalOpen, setNutritionModalOpen] = useState(false);
     const [editingPet, setEditingPet] = useState(null);
@@ -19,6 +22,7 @@ export function PetProfiles() {
     const handleAddPet = async (data) => {
         await petService.createPet(data);
         refetch();
+        showToast('Pet profile created successfully');
     };
 
     const handleUpdatePet = async (data) => {
@@ -30,6 +34,7 @@ export function PetProfiles() {
         }
         await petService.updatePet(petId, data);
         refetch();
+        showToast('Pet profile updated successfully');
     };
 
     const handleDeletePet = async (pet) => {
@@ -45,6 +50,7 @@ export function PetProfiles() {
         try {
             await petService.deletePet(petId);
             refetch();
+            showToast('Pet profile deleted successfully');
         } catch (err) {
             console.error('Delete pet failed:', err);
             alert('Failed to delete pet: ' + (err.message || 'Unknown error'));
@@ -76,13 +82,7 @@ export function PetProfiles() {
         <div className="space-y-6 pb-12">
             <PageHeader
                 title="Pet Profiles"
-                description="Manage all registered pet profiles."
-                action={
-                    <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary-600 text-white font-bold flex items-center gap-2">
-                        <PawPrint className="w-5 h-5" />
-                        Add Pet Profile
-                    </Button>
-                }
+                description="Manage and monitor registered pets across the system."
             />
 
             {/* Search */}
@@ -98,7 +98,7 @@ export function PetProfiles() {
             </div>
 
             {loading ? (
-                <div className="h-96 rounded-2xl bg-surface border border-primary-100 animate-pulse"></div>
+                <Loader />
             ) : (
                 <PetProfilesTable
                     pets={filteredPets}

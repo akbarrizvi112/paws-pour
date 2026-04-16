@@ -74,6 +74,20 @@ export const ruleService = {
         return response.data;
     },
 
+    /** PATCH /rules/{ruleId} — partial update for legacy rule */
+    patchRule: async (ruleId, payload) => {
+        try {
+            console.log(`Executing PATCH /rules/${ruleId}`, payload);
+            const response = await axiosClient.patch(`/rules/${ruleId}`, payload);
+            return response.data;
+        } catch (error) {
+            console.error("Rule patch API error:", error.response?.data || error.message);
+            const serverMessage = error.response?.data?.message || error.response?.data?.error;
+            if (serverMessage) throw new Error(serverMessage);
+            throw error;
+        }
+    },
+
     // ─── Rule Versions ─────────────────────────────────────────────────────────
 
     /** POST /rules/{ruleId}/versions — create a new version of a rule */

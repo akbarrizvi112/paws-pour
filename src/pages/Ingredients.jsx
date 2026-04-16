@@ -5,17 +5,21 @@ import { Button } from '../components/ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
 import { Badge } from '../components/ui/Badge';
 import { Search, Filter, Plus, Trash2, Edit } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { TableRowLoader } from '../components/ui/Loader';
 
 export function Ingredients() {
     const [filters, setFilters] = useState({ isToxic: '', grainStatus: '', meatSource: '' });
     const [searchQuery, setSearchQuery] = useState('');
     const { ingredients, loading, deleteIngredient, refetch } = useIngredients(filters);
+    const { showToast } = useToast();
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this ingredient?')) return;
         try {
             await deleteIngredient(id);
             refetch();
+            showToast('Ingredient deleted successfully');
         } catch (err) {
             alert('Failed to delete ingredient: ' + err.message);
         }
@@ -85,14 +89,7 @@ export function Ingredients() {
                     </TableHeader>
                     <TableBody>
                         {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="h-48 text-center">
-                                    <div className="animate-pulse space-y-4">
-                                        <div className="h-4 bg-primary-50 rounded w-3/4 mx-auto"></div>
-                                        <div className="h-4 bg-primary-50 rounded w-1/2 mx-auto"></div>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
+                            <TableRowLoader colSpan={5} />
                         ) : filteredData.length > 0 ? (
                             filteredData.map((ing) => (
                                 <TableRow key={ing.id || ing._id}>

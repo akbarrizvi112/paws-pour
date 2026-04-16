@@ -4,7 +4,7 @@ import { Pagination } from '../ui/Pagination';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
-export function TreatDatabaseTable({ treats, currentPage, totalPages, onPageChange, onEdit, onDelete }) {
+export function TreatDatabaseTable({ treats, currentPage, totalPages, onPageChange, onEdit, onDelete, hidePagination = false }) {
     return (
         <div className="flex flex-col">
             <div className="rounded-xl border border-primary-100 bg-surface overflow-hidden shadow-sm">
@@ -25,7 +25,7 @@ export function TreatDatabaseTable({ treats, currentPage, totalPages, onPageChan
                     </TableHeader>
                     <TableBody>
                         {treats.map((treat, index) => (
-                            <TableRow key={treat.id || treat._id || `treat-${index}`}>
+                            <TableRow key={treat.treatId || treat.treatID || treat.id || treat._id || `treat-${index}`}>
                                 <TableCell className="font-medium">
                                     {treat.name}
                                     <div className="text-xs text-gray-500 xl:hidden">{treat.meatSource} &bull; {treat.grainStatus}</div>
@@ -68,7 +68,7 @@ export function TreatDatabaseTable({ treats, currentPage, totalPages, onPageChan
                     </TableBody>
                 </Table>
             </div>
-            {totalPages > 1 && (
+            {!hidePagination && totalPages > 1 && (
                 <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
             )}
         </div>

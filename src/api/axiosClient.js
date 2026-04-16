@@ -78,7 +78,7 @@ axiosClient.interceptors.response.use(
 
                 const response = await axios.post(`${baseURL}/auth/refresh`, {}, {
                     // WithCredentials might be needed if refresh token is in an httpOnly cookie.
-                    // withCredentials: true
+                    withCredentials: true
                 });
 
                 const newToken = response.data.accessToken;

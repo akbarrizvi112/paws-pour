@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
         const userId = data.userId || data.id || data._id;
         const userName = data.name || data.userName || data.username;
         const userEmail = data.email;
-        const userRole = data.role || data.roles || data.type;
+        const userRole = data.accountType || data.role || data.roles || data.type;
 
         if (userId) localStorage.setItem('userId', userId);
         if (userName) localStorage.setItem('userName', userName);

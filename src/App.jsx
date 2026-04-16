@@ -11,8 +11,7 @@ import { Login } from './pages/Login';
 import { Users } from './pages/Users';
 import { Ingredients } from './pages/Ingredients';
 import { AuthProvider, useAuth } from './context/AuthContext';
-
-
+import { ToastProvider } from './context/ToastContext';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -64,35 +63,37 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public Auth Route */}
-            <Route path="/login" element={<Login />} />
+        <ToastProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public Auth Route */}
+              <Route path="/login" element={<Login />} />
 
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="pets" element={<PetProfiles />} />
-              <Route path="treats" element={<TreatDatabase />} />
-              <Route path="rules" element={<RuleEngine />} />
-              <Route path="nutrition" element={<Ingredients />} />
-              <Route path="subscriptions" element={<Subscriptions />} />
-              <Route path="safety" element={<SafetyLogs />} />
-              <Route path="users" element={<Users />} />
-              <Route path="settings" element={
-                <div className="flex items-center justify-center p-12 bg-surface rounded-xl border border-primary-100 h-full">
-                  <h2 className="text-2xl font-bold text-primary-600">Settings Page (Placeholder)</h2>
-                </div>
-              } />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="pets" element={<PetProfiles />} />
+                <Route path="treats" element={<TreatDatabase />} />
+                <Route path="rules" element={<RuleEngine />} />
+                <Route path="nutrition" element={<Ingredients />} />
+                <Route path="subscriptions" element={<Subscriptions />} />
+                <Route path="safety" element={<SafetyLogs />} />
+                <Route path="users" element={<Users />} />
+                <Route path="settings" element={
+                  <div className="flex items-center justify-center p-12 bg-surface rounded-xl border border-primary-100 h-full">
+                    <h2 className="text-2xl font-bold text-primary-600">Settings Page (Placeholder)</h2>
+                  </div>
+                } />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

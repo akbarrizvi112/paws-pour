@@ -5,9 +5,12 @@ import { TreatModal } from '../components/modals/TreatModal';
 import { useTreats } from '../hooks/useTreats';
 import { Button } from '../components/ui/Button';
 import { Plus } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { Loader } from '../components/ui/Loader';
 
 export function TreatDatabase() {
     const { treats, loading, refetch, createTreat, updateTreat, deleteTreat } = useTreats();
+    const { showToast } = useToast();
     const [modalOpen, setModalOpen] = useState(false);
     const [editingTreat, setEditingTreat] = useState(null);
 
@@ -24,8 +27,10 @@ export function TreatDatabase() {
     const handleDelete = async (treat) => {
         if (!window.confirm(`Delete treat "${treat.name}"?`)) return;
         try {
-            await deleteTreat(treat.id || treat._id);
+            const idToDelete = treat.treatId || treat.treatID || treat.treat_id || treat.id || treat._id;
+            await deleteTreat(idToDelete);
             refetch();
+            showToast('Treat deleted successfully');
         } catch (err) {
             alert('Failed to delete treat: ' + err.message);
         }
@@ -34,11 +39,17 @@ export function TreatDatabase() {
     const handleSubmit = async (data) => {
         try {
             if (editingTreat) {
-                await updateTreat(editingTreat.id || editingTreat._id, data);
+                const idToUpdate = data.treatId || data.treatID || data.treat_id || data.id || data._id ||
+                    editingTreat.treatId || editingTreat.treatID || editingTreat.treat_id || editingTreat.id || editingTreat._id;
+
+                if (!idToUpdate) throw new Error("Treat ID is required for update.");
+
+                await updateTreat(idToUpdate, data);
             } else {
                 await createTreat(data);
             }
             refetch();
+            showToast(editingTreat ? 'Treat updated successfully' : 'Treat created successfully');
         } catch (err) {
             alert('Failed to save treat: ' + err.message);
         }
@@ -57,7 +68,7 @@ export function TreatDatabase() {
                 }
             />
             {loading ? (
-                <div className="h-96 rounded-2xl bg-surface border border-primary-100 animate-pulse"></div>
+                <Loader />
             ) : (
                 <TreatDatabaseTable
                     treats={(Array.isArray(treats) ? treats : [])}

@@ -6,6 +6,7 @@ import { Button } from '../ui/Button';
 import { useEffect } from 'react';
 import { Pagination } from '../ui/Pagination';
 import { safetyService } from '../../services/safetyService';
+import { Loader } from '../ui/Loader';
 
 // ─── Detail drawer ─────────────────────────────────────────────────────────────
 
@@ -55,10 +56,7 @@ function LogDetailDrawer({ logId, initialLog, onClose }) {
                 {/* Content */}
                 <div className="p-6 overflow-y-auto flex-1 space-y-6">
                     {loading && !detail && (
-                        <div className="flex flex-col items-center justify-center py-12 text-primary-300">
-                            <span className="animate-spin mb-2 text-2xl">⟳</span>
-                            <span className="text-sm">Fetching event details...</span>
-                        </div>
+                        <Loader message="Fetching event details..." fullHeight={false} />
                     )}
 
                     {detail && (

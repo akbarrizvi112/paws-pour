@@ -13,6 +13,7 @@ import { SafetyLogsTable } from '../components/tables/SafetyLogsTable';
 import { TreatModal } from '../components/modals/TreatModal';
 import { PetModal } from '../components/modals/PetModal';
 import { Button } from '../components/ui/Button';
+import { Loader } from '../components/ui/Loader';
 import { PawPrint, Bone, ShieldAlert, CreditCard } from 'lucide-react';
 
 import { usePets } from '../hooks/usePets';
@@ -244,7 +245,7 @@ export function Dashboard() {
                                     View All &gt;
                                 </Button>
                             </div>
-                            {petsLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                            {petsLoading ? <Loader /> : (
                                 <PetProfilesTable
                                     pets={Array.isArray(pets) ? pets.slice(0, 5) : []}
                                     onEdit={handleEditPet}
@@ -265,10 +266,11 @@ export function Dashboard() {
                                     View All &gt;
                                 </Button>
                             </div>
-                            {rulesLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                            {rulesLoading ? <Loader /> : (
                                 <RuleEngineTable
                                     rules={allRules.slice(0, 4)}
                                     isUnified={allRules.some(r => !!r.source)}
+                                    hideActions={true}
                                 />
                             )}
                         </div>
@@ -291,7 +293,7 @@ export function Dashboard() {
                                     <Button size="sm" variant="outline" onClick={() => alert('Please use the edit icon in the table rows.')}>Edit</Button>
                                 </div>
                             </div>
-                            {treatsLoading ? <div className="h-[400px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                            {treatsLoading ? <Loader /> : (
                                 <TreatDatabaseTable
                                     treats={treats.slice(0, 5)}
                                     currentPage={1}
@@ -299,6 +301,7 @@ export function Dashboard() {
                                     onPageChange={() => { }}
                                     onEdit={handleEditTreat}
                                     onDelete={handleDeleteTreat}
+                                    hidePagination={true}
                                 />
                             )}
 
@@ -324,7 +327,7 @@ export function Dashboard() {
                                         View All &gt;
                                     </Button>
                                 </div>
-                                {safetyLoading ? <div className="h-48 bg-surface rounded-2xl border border-primary-100 animate-pulse" /> : (
+                                {safetyLoading ? <Loader /> : (
                                     <SafetyLogsTable logs={Array.isArray(safetyLogs) ? safetyLogs.slice(0, 5) : []} currentPage={1} totalPages={1} onPageChange={() => { }} />
                                 )}
                             </div>
@@ -337,15 +340,8 @@ export function Dashboard() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-primary-900">Pet Profiles</h2>
-                        <Button
-                            size="sm"
-                            className="bg-primary hover:bg-primary-600 text-white"
-                            onClick={handleOpenAddPet}
-                        >
-                            Add Pet Profile
-                        </Button>
                     </div>
-                    {petsLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                    {petsLoading ? <Loader /> : (
                         <PetProfilesTable
                             pets={pets}
                             currentPage={1}
@@ -376,7 +372,7 @@ export function Dashboard() {
 
                         </div>
                     </div>
-                    {treatsLoading ? <div className="h-[400px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                    {treatsLoading ? <Loader /> : (
                         <TreatDatabaseTable
                             treats={treats}
                             currentPage={1}
@@ -394,16 +390,12 @@ export function Dashboard() {
                 <div className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <h2 className="text-xl font-bold text-primary-900">Rule Engine Configuration</h2>
-                        <div className="flex flex-wrap gap-2">
-                            <Button className="bg-primary text-white hover:bg-primary-600 shadow-sm font-semibold">Species Compatibility</Button>
-                            <Button className="bg-primary-100 text-primary-900 hover:bg-primary-200 shadow-sm font-semibold">Toxic Ingredients</Button>
-                            <Button className="bg-warning-soft text-warning hover:bg-warning shadow-sm font-semibold">Allergy Filters</Button>
-                        </div>
                     </div>
-                    {rulesLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                    {rulesLoading ? <Loader /> : (
                         <RuleEngineTable
                             rules={allRules}
                             isUnified={allRules.some(r => !!r.source)}
+                            hideActions={true}
                         />
                     )}
                 </div>
@@ -421,7 +413,7 @@ export function Dashboard() {
                         </div>
                         <div className="space-y-4">
                             <div className="h-auto">
-                                {subsLoading ? <div className="h-[300px] bg-surface rounded-2xl border border-primary-100 animate-pulse"></div> : (
+                                {subsLoading ? <Loader /> : (
                                     <SubscriptionChart data={subsStats} />
                                 )}
                             </div>
@@ -436,7 +428,7 @@ export function Dashboard() {
                         <h2 className="text-xl font-bold text-primary-900">Safety Logs</h2>
                         <Button variant="outline" className="text-primary-900 border-primary-500">Export Logs</Button>
                     </div>
-                    {safetyLoading ? <div className="h-64 bg-surface rounded-2xl border border-primary-100 animate-pulse" /> : (
+                    {safetyLoading ? <Loader /> : (
                         <SafetyLogsTable logs={safetyLogs} currentPage={1} totalPages={1} onPageChange={() => { }} />
                     )}
                 </div>
