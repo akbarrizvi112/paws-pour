@@ -6,9 +6,9 @@ export function useRules() {
     const [rules, setRules] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [activeTab, setActiveTab] = useState('unified'); // 'unified' | 'legacy'
+    const [activeTab, setActiveTab] = useState('unified');
 
-    // ─── Fetch ────────────────────────────────────────────────────────────────
+
 
     const fetchUnifiedRules = useCallback(async () => {
         try {
@@ -44,7 +44,7 @@ export function useRules() {
         fetchAll();
     }, [fetchAll]);
 
-    // ─── Legacy CRUD ──────────────────────────────────────────────────────────
+
 
     const createRule = useCallback(async (payload) => {
         const created = await ruleService.createRule(payload);
